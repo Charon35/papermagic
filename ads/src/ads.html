@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic ads overlay</title>
+<link rel="stylesheet" href="../../instagram/src/fonts.css">
+<style>
+:root{--violet:#6a4cf0;--violet-l:#efe9ff;--sun:#ffc93c;--ink:#2a2440;--cream:#fffaf3;--coral:#ff6b5b;--mint:#5fd3b5;--muted:#6b6580}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow:hidden;background:transparent}
+body{font-family:Nunito,sans-serif;color:var(--ink);width:1080px;height:1920px}
+#stage{position:relative;overflow:hidden;width:1080px;height:1920px}
+.abs{position:absolute}
+.h{font-weight:900;line-height:1.04;letter-spacing:-.015em}
+.hl{background:linear-gradient(transparent 58%,var(--sun) 58%);padding:0 10px;margin:0 -10px}
+.pill{display:inline-flex;align-items:center;gap:14px;border-radius:999px;font-weight:900;white-space:nowrap}
+.fig svg{width:100%;height:auto;display:block;overflow:visible}
+.cap{left:70px;right:70px;text-align:center}
+.cap>div{display:inline-block;background:#fff;border-radius:38px;padding:26px 42px;font-weight:900;font-size:80px;line-height:1.08;box-shadow:0 16px 40px rgba(42,36,64,.28)}
+.cap.v>div{background:var(--violet);color:#fff}
+.cap.y>div{background:var(--sun);color:var(--ink)}
+.cap.c>div{background:var(--coral);color:#fff}
+.cap.s>div{font-size:62px;padding:22px 36px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../../instagram/src/figs.js"></script>
+<script>
+/* Реклами 1080×1920. Безпечні зони Reels: ~250 px зверху, ~350 px знизу (текст між 250 і 1570).
+   render(ad, t) малює кадр оверлею на прозорому тлі; повноекранні графічні сцени непрозорі. */
+const W = 1080, H = 1920;
+const PRODUCTS = [
+  {id:'police',  name:'Поліцейське авто',        price:99},
+  {id:'racer',   name:'Гоночна «Блискавка 95»',  price:99},
+  {id:'shark',   name:'Весела акула',            price:89},
+  {id:'cupcake', name:'Фудтрак «Кекс»',          price:99},
+  {id:'hippie',  name:'Хіпі-фургон',             price:99},
+  {id:'bus',     name:'Мікроавтобус «Жабенята»', price:99},
+  {id:'truck',   name:'Вантажівка PaperMagic',   price:89},
+  {id:'dog',     name:'Песик Шнауцер',           price:99},
+];
+const fig = id => FIGS[id]();
+const clamp = (x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const prog = (t,a,b)=>clamp((t-a)/(b-a));
+const eOut = x=>1-Math.pow(1-x,3);
+const eBack = x=>{ const c1=1.9, c3=c1+1; return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2); };
+const box = (style, html='') => `<div class="abs" style="${style}">${html}</div>`;
+const figAt = (fid, left, top, w, extra='') => box(`left:${left}px;top:${top}px;width:${w}px;${extra}`, `<div class="fig">${fig(fid)}</div>`);
+const LOGO = (c='#fff') => `<svg viewBox="0 0 900 860" width="100%" height="100%"><g fill="none" stroke="${c}" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"><path d="M195 165 L248 525 M195 165 L560 528"/><path d="M25 428 L330 578 M25 428 L305 738 L440 708"/><path d="M290 615 L445 465 L655 628 L650 838 L290 615 Z M290 615 L305 738"/><path d="M445 465 Q470 600 515 640 Q590 740 645 828" stroke-width="12"/><path d="M560 545 L712 290 L772 292 L655 628 M772 292 L860 405 L752 362"/></g><g fill="${c}"><path d="M453 20 Q467.0 76.0 523 90 Q467.0 104.0 453 160 Q439.0 104.0 383 90 Q439.0 76.0 453 20 Z"/><path d="M648 158 Q657.4 195.6 695 205 Q657.4 214.4 648 252 Q638.6 214.4 601 205 Q638.6 195.6 648 158 Z"/><path d="M523 270 Q531.0 302.0 563 310 Q531.0 318.0 523 350 Q515.0 318.0 483 310 Q515.0 302.0 523 270 Z"/><path d="M825 538 Q836.4 583.6 882 595 Q836.4 606.4 825 652 Q813.6 606.4 768 595 Q813.6 583.6 825 538 Z"/></g></svg>`;
+// бренд-бейдж на відео: напівпрозора темна плашка з білим лого
+const brandTag = (top=262, op=1) => box(`left:0;right:0;top:${top}px;text-align:center;opacity:${op}`,
+  `<span class="pill" style="background:rgba(42,36,64,.55);color:#fff;font-size:40px;padding:10px 28px 10px 18px"><span style="width:58px;height:56px;display:inline-block">${LOGO('#fff')}</span>PaperMagic</span>`);
+const brandBig = (top, c='#fff', size=110) => box(`left:0;right:0;top:${top}px;display:flex;justify-content:center;align-items:center;gap:22px;font-weight:900;font-size:${size*0.62}px;color:${c}`, `<div style="width:${size}px;height:${size*0.955}px">${LOGO(c)}</div>PaperMagic`);
+
+// підпис-плашка, що «вистрибує» і зникає
+const caption = (html, t, a, b, top=300, cls='') => {
+  if (t < a || t > b) return '';
+  const pin = eBack(prog(t, a, a+0.32)), pout = prog(t, b-0.2, b);
+  return `<div class="abs cap ${cls}" style="top:${top}px;opacity:${1-pout};transform:scale(${(0.55+0.45*pin)*(1-0.12*pout)});transform-origin:50% 0"><div>${html}</div></div>`;
+};
+// крок «1 Роздрукуй» з жовтим кружком
+const step = (n, txt, t, a, b, top=300) => {
+  if (t < a || t > b) return '';
+  const pin = eBack(prog(t, a, a+0.32)), pout = prog(t, b-0.18, b);
+  return box(`left:0;right:0;top:${top}px;display:flex;justify-content:center;opacity:${1-pout};transform:translateX(${(1-eOut(prog(t,a,a+0.3)))*-120}px) scale(${0.7+0.3*pin})`,
+    `<div style="display:flex;align-items:center;gap:22px;background:#fff;border-radius:999px;padding:16px 46px 16px 16px;box-shadow:0 16px 40px rgba(42,36,64,.28)">
+       <div style="width:124px;height:124px;border-radius:50%;background:var(--sun);display:grid;place-items:center;font-weight:900;font-size:78px">${n}</div>
+       <div class="h" style="font-size:86px">${txt}</div></div>`);
+};
+const confetti = (cx, cy, p, n=34) => {
+  if (p<=0 || p>=1) return '';
+  const cols = ['#ffc93c','#ff6b5b','#5fd3b5','#6a4cf0','#5aa9f5','#fff'];
+  let s = '';
+  for (let i=0;i<n;i++){ const a = i/n*Math.PI*2 + i, r = 140 + 460*eOut(p)*(0.55+0.45*((i*37)%10)/10);
+    s += box(`left:${cx+Math.cos(a)*r-13}px;top:${cy+Math.sin(a)*r+300*p*p-13}px;width:26px;height:${i%2?26:13}px;border-radius:${i%3?6:13}px;background:${cols[i%6]};opacity:${1-p*p};transform:rotate(${i*40+p*320}deg)`); }
+  return s;
+};
+const sparkle = (x, y, s, t, ph=0) => { const k = 0.6+0.4*Math.sin(t*6+ph);
+  return box(`left:${x}px;top:${y}px;width:${s}px;height:${s}px;transform:scale(${k}) rotate(${t*40}deg);opacity:${k}`, `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 0 Q56 44 100 50 Q56 56 50 100 Q44 56 0 50 Q44 44 50 0Z" fill="#ffc93c"/></svg>`); };
+const pricePill = (txt, size=80, bg='var(--violet)', fg='#fff') => `<span class="pill" style="background:${bg};color:${fg};font-size:${size}px;padding:${size*.2}px ${size*.5}px;box-shadow:0 14px 34px rgba(42,36,64,.25)">${txt}</span>`;
+const ctaPill = (size=46) => `<span class="pill" style="background:var(--sun);color:var(--ink);font-size:${size}px;padding:${size*.42}px ${size*.9}px;box-shadow:0 10px 0 #e0a915">Купити на сайті 👇</span>`;
+const handle = (size=40, c='#fff') => `<span style="font-size:${size}px;font-weight:800;color:${c}">або посилання в профілі @papermagic_ua</span>`;
+// легке затемнення відео під текстом зверху (читабельність без звуку)
+const topShade = (op=1, h=900) => box(`left:0;top:0;width:${W}px;height:${h}px;opacity:${op};background:linear-gradient(rgba(20,16,36,.55),rgba(20,16,36,0))`);
+const vignette = (op=1) => box(`inset:0;opacity:${op};background:radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 55%, rgba(20,16,36,.45) 100%)`);
+const fadeIn = (t, a, d=0.35) => eOut(prog(t, a, a+d));
+
+// фінальна картка (непрозора): фігурки, ціна, CTA
+function endCard(t, a, o){
+  const lt = t - a, k = fadeIn(t, a, 0.3);
+  let s = box(`inset:0;background:${o.bg||'var(--violet)'};opacity:${k}`);
+  if (k < 0.02) return '';
+  s += box(`left:60px;top:560px;width:960px;height:860px;border-radius:50%;background:rgba(255,255,255,.12);opacity:${k}`);
+  s += brandBig(262, '#fff', 104);
+  s += box(`left:0;right:0;top:${410 - (1-eOut(prog(lt,0.05,0.4)))*40}px;text-align:center;color:#fff;font-size:${o.titleSize||96}px;opacity:${prog(lt,0.05,0.35)}`, `<div class="h">${o.title}</div>`);
+  const figs = o.figs || ['police','shark','cupcake'];  // [ліва, права, центральна-головна]
+  const pos = o.pos || [[20,1010,400],[660,1010,400],[200,640,680]];
+  figs.forEach((f,i)=>{ const kk = eBack(prog(lt, 0.2+i*0.12, 0.65+i*0.12));
+    const [x,y,w] = pos[i]; s += figAt(f, x, y + Math.sin(t*3+i)*10, w, `transform:scale(${kk})`); });
+  s += box(`left:0;right:0;top:1290px;text-align:center;transform:scale(${eBack(prog(lt,0.55,0.95))})`, o.price);
+  s += box(`left:0;right:0;top:1440px;text-align:center;transform:translateY(${(1-eOut(prog(lt,0.8,1.15)))*40}px);opacity:${prog(lt,0.8,1.1)}`, ctaPill(48));
+  s += box(`left:0;right:0;top:1545px;text-align:center;opacity:${prog(lt,1.0,1.3)}`, handle(40));
+  s += confetti(540, 1000, prog(lt, 0.45, 2.0));
+  s += sparkle(120, 500, 70, t) + sparkle(900, 640, 54, t, 2) + sparkle(940, 1180, 64, t, 4);
+  return s;
+}
+
+// сітка всіх 8 фігурок (непрозора сцена для набору)
+function bundleGrid(t, a, b, o={}){
+  if (t < a || t > b) return '';
+  const lt = t - a, k = fadeIn(t, a, 0.2) * (1 - prog(t, b-0.2, b));
+  let s = box(`inset:0;background:var(--cream);opacity:${k}`);
+  PRODUCTS.forEach((p,i)=>{ const kk = eBack(prog(lt, 0.05+i*0.06, 0.4+i*0.06)), x = 70+(i%2)*480, y = 540+Math.floor(i/2)*250;
+    s += box(`left:${x}px;top:${y}px;width:460px;height:232px;border-radius:34px;background:${BG[p.id]};padding:10px 80px;transform:scale(${kk});opacity:${k}`, `<div class="fig">${fig(p.id)}</div>`); });
+  return s;
+}
+
+/* ======================= сценарії ======================= */
+const ADS = {
+  // 1. Процес → результат
+  1: { dur: 21, render(t){
+    let s = '';
+    s += topShade(1 - prog(t, 17.0, 17.4));
+    s += brandTag(262, 1 - prog(t, 17.0, 17.3));
+    s += caption('Розмальовка, яка<br>стає <span class="hl">3D-іграшкою</span> 😮', t, 0.0, 2.6, 400);
+    s += step(1, 'Роздрукуй 🖨️', t, 2.6, 5.4, 400);
+    s += step(2, 'Розмалюй 🖍️', t, 5.4, 9.6, 400);
+    s += step(3, 'Виріж ✂️', t, 9.6, 13.2, 400);
+    s += step(4, 'Склей 🧩', t, 13.2, 15.6, 400);
+    s += caption('Готово! Своя іграшка 🎉', t, 15.6, 17.4, 400, 'y');
+    s += confetti(540, 900, prog(t, 15.7, 17.2));
+    s += endCard(t, 17.2, { title:'3D-розмальовки<br>у PDF', price: `<span style="display:inline-flex;gap:22px;align-items:center">${pricePill('від 89 ₴', 92, 'var(--sun)', 'var(--ink)')}</span>` });
+    return s; } },
+
+  // 2. Проблема → рішення для батьків
+  2: { dur: 22, render(t){
+    let s = '';
+    s += box(`inset:0;background:rgba(20,16,36,${0.45*(1-prog(t,2.3,2.8))})`);
+    s += topShade(1 - prog(t, 18.0, 18.4));
+    s += brandTag(262, prog(t, 2.6, 3.0) * (1 - prog(t, 18.0, 18.3)));
+    s += caption('Чим зайняти дитину<br><span style="color:var(--coral)">без телефону?</span> 📵', t, 0.0, 2.8, 520);
+    s += caption('Ось чим 👇', t, 2.8, 5.2, 400, 'y');
+    s += caption('Розмальовка, яка<br>стає 3D-іграшкою', t, 5.2, 9.0, 400);
+    s += caption('30–60 хв творчості<br>замість мультиків ⏱', t, 9.0, 13.2, 400, 'v');
+    s += caption('А потім — гра з тим,<br>що зробив сам 🙌', t, 13.2, 18.2, 400);
+    s += endCard(t, 18.2, { title:'Роздрукуй → розмалюй<br>→ виріж → склей', titleSize:72, figs:['dog','bus','racer'],
+      price: `<span style="display:inline-flex;gap:22px;align-items:center">${pricePill('99 ₴', 92, 'var(--sun)', 'var(--ink)')}<span style="font-size:44px;font-weight:800;color:#fff">PDF одразу<br>на пошту</span></span>` });
+    return s; } },
+
+  // 3. Набір / вигода
+  3: { dur: 20, render(t){
+    let s = '';
+    s += bundleGrid(t, 0, 3.4);
+    s += caption('Усі 8 фігурок<br>за <span class="hl">449 ₴</span> 🎁', t, 0.0, 3.4, 270, 'v');
+    s += box(`left:0;right:0;top:1560px;text-align:center;opacity:${prog(t,0.6,0.9)*(1-prog(t,3.2,3.4))}`, `<span style="font-size:54px;font-weight:900;color:var(--muted);text-decoration:line-through">772 ₴</span>`);
+    s += topShade(prog(t,3.3,3.6) * (1 - prog(t, 16.0, 16.4)));
+    s += brandTag(262, prog(t,3.4,3.8) * (1 - prog(t, 16.0, 16.3)));
+    s += caption('Друкуй скільки<br>завгодно разів 🖨️', t, 3.4, 7.4, 400);
+    s += caption('Для братиків і сестричок,<br>для друзів на святі 🎈', t, 7.4, 11.6, 400, 's');
+    s += caption('Ідея для подарунка 🎁', t, 11.6, 16.2, 400, 'y');
+    s += endCard(t, 16.2, { title:'Увесь набір —<br>8 фігурок', figs:['hippie','truck','cupcake'],
+      price: `<span style="display:inline-flex;gap:26px;align-items:center">${pricePill('449 ₴', 100, 'var(--sun)', 'var(--ink)')}<span style="font-size:56px;font-weight:800;color:#fff;opacity:.8;text-decoration:line-through">772 ₴</span></span>` });
+    return s; } },
+
+  // 4. Емоція / UGC — мінімум тексту
+  4: { dur: 16, render(t){
+    let s = '';
+    s += vignette(1 - prog(t, 12.6, 13.0));
+    s += brandTag(262, 1 - prog(t, 12.6, 12.9));
+    s += caption('Зроблено<br>своїми руками ✨', t, 0.0, 3.0, 400);
+    s += caption('Сам розмалював,<br>сам склеїв 💛', t, 7.0, 10.5, 400, 's');
+    s += endCard(t, 12.8, { title:'Зроблено<br>своїми руками ✨', figs:['shark','police','bus'], bg:'var(--coral)',
+      price: `${pricePill('від 89 ₴', 88, 'var(--sun)', 'var(--ink)')}` });
+    return s; } },
+};
+
+const stage = document.getElementById('stage');
+window.renderFrame = (ad, t, opaqueBg) => { stage.style.background = opaqueBg || 'transparent'; stage.innerHTML = ADS[ad].render(t); };
+window.AD_DUR = ad => ADS[ad].dur;
+</script>
+</body>
+</html>

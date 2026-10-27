@@ -10,3 +10,4 @@ brand/_*
 *.zip
 .claude/
 .DS_Store
+ads/preview/

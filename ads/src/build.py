@@ -5,6 +5,9 @@ import json, os, subprocess, sys, shutil
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADS = os.path.dirname(HERE)
 RAW = os.environ.get('RAW', f'{ADS}/raw')
+SDR = f'{ADS}/thumbs/sdr'   # iPhone HLG → SDR BT.709, 1080×1920
+TONEMAP = ('zscale=t=linear:npl=203,format=gbrpf32le,zscale=p=bt709,tonemap=mobius:param=0.3:desat=0,'
+           'zscale=t=bt709:m=bt709:r=tv,format=yuv420p')
 OUT = os.environ.get('OUT', f'{ADS}/out')
 TMP = f'{ADS}/thumbs/build'
 FPS = 30
@@ -16,6 +19,12 @@ def main(n):
     total = sum(sg['dur'] for sg in cfg['segments'])
     if abs(total - cfg['dur']) > 0.05:
         sys.exit(f"ad {n}: сегменти дають {total:.2f} с, а треба {cfg['dur']} с — виправ edit.json")
+    for c in {sg['clip'] for sg in cfg['segments']}:
+        src = f'{SDR}/{c}.mp4'
+        if not os.path.exists(src):
+            os.makedirs(SDR, exist_ok=True)
+            run('ffmpeg', '-v', 'error', '-y', '-i', f'{RAW}/{c} (1).MOV', '-vf', f'{TONEMAP},scale=1080:1920',
+                '-c:v', 'libx264', '-crf', '12', '-preset', 'fast', '-an', src)
     work = f'{TMP}/ad{n}'; shutil.rmtree(work, ignore_errors=True); os.makedirs(work)
     os.makedirs(OUT, exist_ok=True)
     # 1. сегменти → однаковий формат
@@ -31,7 +40,7 @@ def main(n):
             z = sg['zoom']; d = sg['dur']
             vf += f",zoompan=z='1+{z}*on/({d}*{FPS})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1920:fps={FPS}"
         p = f'{work}/s{i:02d}.mp4'
-        run('ffmpeg', '-v', 'error', '-y', '-ss', str(sg['in']), '-t', str(sg['dur'] * sp), '-i', f"{RAW}/{sg['clip']}",
+        run('ffmpeg', '-v', 'error', '-y', '-ss', str(sg['in']), '-t', str(sg['dur'] * sp), '-i', f"{SDR}/{sg['clip']}.mp4",
             '-an', '-vf', vf, '-t', str(sg['dur']), '-c:v', 'libx264', '-crf', '14', '-preset', 'fast', '-pix_fmt', 'yuv420p', p)
         parts.append(p)
     with open(f'{work}/list.txt', 'w') as f:

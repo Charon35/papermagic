@@ -82,7 +82,8 @@ const pricePill = (txt, size=80, bg='var(--violet)', fg='#fff') => `<span class=
 const ctaPill = (size=46) => `<span class="pill" style="background:var(--sun);color:var(--ink);font-size:${size}px;padding:${size*.42}px ${size*.9}px;box-shadow:0 10px 0 #e0a915">Купити на сайті 👇</span>`;
 const handle = (size=40, c='#fff') => `<span style="font-size:${size}px;font-weight:800;color:${c}">або посилання в профілі @papermagic_ua</span>`;
 // легке затемнення відео під текстом зверху (читабельність без звуку)
-const topShade = (op=1, h=900) => box(`left:0;top:0;width:${W}px;height:${h}px;opacity:${op};background:linear-gradient(rgba(20,16,36,.55),rgba(20,16,36,0))`);
+const topShade = (op=1, h=520) => box(`left:0;top:0;width:${W}px;height:${h}px;opacity:${op};background:linear-gradient(rgba(20,16,36,.45),rgba(20,16,36,0))`);
+const botShade = (op=1, h=900) => box(`left:0;bottom:0;width:${W}px;height:${h}px;opacity:${op};background:linear-gradient(rgba(20,16,36,0),rgba(20,16,36,.5))`);
 const vignette = (op=1) => box(`inset:0;opacity:${op};background:radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 55%, rgba(20,16,36,.45) 100%)`);
 const fadeIn = (t, a, d=0.35) => eOut(prog(t, a, a+d));
 
@@ -121,14 +122,15 @@ const ADS = {
   // 1. Процес → результат
   1: { dur: 21, render(t){
     let s = '';
-    s += topShade(1 - prog(t, 17.0, 17.4));
+    s += topShade(1);
+    s += botShade(1 - prog(t, 17.0, 17.4));
     s += brandTag(262, 1 - prog(t, 17.0, 17.3));
-    s += caption('Розмальовка, яка<br>стає <span class="hl">3D-іграшкою</span> 😮', t, 0.0, 2.6, 400);
-    s += step(1, 'Роздрукуй 🖨️', t, 2.6, 5.4, 400);
-    s += step(2, 'Розмалюй 🖍️', t, 5.4, 9.6, 400);
-    s += step(3, 'Виріж ✂️', t, 9.6, 13.2, 400);
-    s += step(4, 'Склей 🧩', t, 13.2, 15.6, 400);
-    s += caption('Готово! Своя іграшка 🎉', t, 15.6, 17.4, 400, 'y');
+    s += caption('Розмальовка, яка<br>стає <span class="hl">3D-іграшкою</span>', t, 0.0, 2.6, 1250);
+    s += step(1, 'Роздрукуй 🖨️', t, 2.6, 5.4, 1250);
+    s += step(2, 'Розмалюй 🖍️', t, 5.4, 9.6, 1250);
+    s += step(3, 'Виріж ✂️', t, 9.6, 13.2, 1250);
+    s += step(4, 'Склей 🧩', t, 13.2, 15.6, 1250);
+    s += caption('Готово! Своя іграшка 🎉', t, 15.6, 17.4, 1250, 'y');
     s += confetti(540, 900, prog(t, 15.7, 17.2));
     s += endCard(t, 17.2, { title:'3D-розмальовки<br>у PDF', price: `<span style="display:inline-flex;gap:22px;align-items:center">${pricePill('від 89 ₴', 92, 'var(--sun)', 'var(--ink)')}</span>` });
     return s; } },
@@ -137,13 +139,14 @@ const ADS = {
   2: { dur: 22, render(t){
     let s = '';
     s += box(`inset:0;background:rgba(20,16,36,${0.45*(1-prog(t,2.3,2.8))})`);
-    s += topShade(1 - prog(t, 18.0, 18.4));
+    s += topShade(1);
+    s += botShade(1 - prog(t, 18.0, 18.4));
     s += brandTag(262, prog(t, 2.6, 3.0) * (1 - prog(t, 18.0, 18.3)));
     s += caption('Чим зайняти дитину<br><span style="color:var(--coral)">без телефону?</span> 📵', t, 0.0, 2.8, 520);
-    s += caption('Ось чим 👇', t, 2.8, 5.2, 400, 'y');
-    s += caption('Розмальовка, яка<br>стає 3D-іграшкою', t, 5.2, 9.0, 400);
-    s += caption('30–60 хв творчості<br>замість мультиків ⏱', t, 9.0, 13.2, 400, 'v');
-    s += caption('А потім — гра з тим,<br>що зробив сам 🙌', t, 13.2, 18.2, 400);
+    s += caption('Ось чим 👇', t, 2.8, 5.2, 1250, 'y');
+    s += caption('Розмальовка, яка<br>стає 3D-іграшкою', t, 5.2, 9.0, 1250);
+    s += caption('30–60 хв творчості<br>замість мультиків ⏱', t, 9.0, 13.2, 1250, 'v');
+    s += caption('А потім — гра з тим,<br>що зробив сам 🙌', t, 13.2, 18.2, 1250);
     s += endCard(t, 18.2, { title:'Роздрукуй → розмалюй<br>→ виріж → склей', titleSize:72, figs:['dog','bus','racer'],
       price: `<span style="display:inline-flex;gap:22px;align-items:center">${pricePill('99 ₴', 92, 'var(--sun)', 'var(--ink)')}<span style="font-size:44px;font-weight:800;color:#fff">PDF одразу<br>на пошту</span></span>` });
     return s; } },
@@ -152,13 +155,14 @@ const ADS = {
   3: { dur: 20, render(t){
     let s = '';
     s += bundleGrid(t, 0, 3.4);
-    s += caption('Усі 8 фігурок<br>за <span class="hl">449 ₴</span> 🎁', t, 0.0, 3.4, 270, 'v');
+    s += caption('Усі 8 фігурок<br>за <span style="color:var(--sun)">449 ₴</span> 🎁', t, 0.0, 3.4, 270, 'v');
     s += box(`left:0;right:0;top:1560px;text-align:center;opacity:${prog(t,0.6,0.9)*(1-prog(t,3.2,3.4))}`, `<span style="font-size:54px;font-weight:900;color:var(--muted);text-decoration:line-through">772 ₴</span>`);
-    s += topShade(prog(t,3.3,3.6) * (1 - prog(t, 16.0, 16.4)));
+    s += topShade(prog(t,3.3,3.6));
+    s += botShade(prog(t,3.3,3.6) * (1 - prog(t, 16.0, 16.4)));
     s += brandTag(262, prog(t,3.4,3.8) * (1 - prog(t, 16.0, 16.3)));
-    s += caption('Друкуй скільки<br>завгодно разів 🖨️', t, 3.4, 7.4, 400);
-    s += caption('Для братиків і сестричок,<br>для друзів на святі 🎈', t, 7.4, 11.6, 400, 's');
-    s += caption('Ідея для подарунка 🎁', t, 11.6, 16.2, 400, 'y');
+    s += caption('Друкуй скільки<br>завгодно разів 🖨️', t, 3.4, 7.4, 1250);
+    s += caption('Для братиків і сестричок,<br>для друзів на святі 🎈', t, 7.4, 11.6, 1250, 's');
+    s += caption('Ідея для<br>подарунка 🎁', t, 11.6, 16.2, 1250, 'y');
     s += endCard(t, 16.2, { title:'Увесь набір —<br>8 фігурок', figs:['hippie','truck','cupcake'],
       price: `<span style="display:inline-flex;gap:26px;align-items:center">${pricePill('449 ₴', 100, 'var(--sun)', 'var(--ink)')}<span style="font-size:56px;font-weight:800;color:#fff;opacity:.8;text-decoration:line-through">772 ₴</span></span>` });
     return s; } },
@@ -168,8 +172,8 @@ const ADS = {
     let s = '';
     s += vignette(1 - prog(t, 12.6, 13.0));
     s += brandTag(262, 1 - prog(t, 12.6, 12.9));
-    s += caption('Зроблено<br>своїми руками ✨', t, 0.0, 3.0, 400);
-    s += caption('Сам розмалював,<br>сам склеїв 💛', t, 7.0, 10.5, 400, 's');
+    s += caption('Зроблено<br>своїми руками ✨', t, 0.0, 3.0, 1250);
+    s += caption('Сам розмалював,<br>сам склеїв 💛', t, 7.0, 10.5, 1250, 's');
     s += endCard(t, 12.8, { title:'Зроблено<br>своїми руками ✨', figs:['shark','police','bus'], bg:'var(--coral)',
       price: `${pricePill('від 89 ₴', 88, 'var(--sun)', 'var(--ink)')}` });
     return s; } },

@@ -219,6 +219,23 @@ label.agree input{margin-top:3px;width:18px;height:18px;accent-color:var(--viole
   .cart-btn .lbl{display:none}
 }
 </style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1156412856815677');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1156412856815677&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
 
@@ -711,8 +728,13 @@ function openProduct(id){
   document.getElementById('pmNote').textContent = 'Оплата карткою через monobank, PDF — на e-mail протягом години.';
   document.getElementById('pmList').innerHTML = `<li>Формат: PDF, 1 аркуш А4</li><li>Складність: ${current.diff.toLowerCase()}</li><li>Час: ${current.time}</li><li>Вік: 5+ (молодшим — з дорослим)</li><li>Інструкція прямо на аркуші</li>`;
   showTab('fig'); pOv.classList.add('open');
+  track('ViewContent', {content_name: current.name, content_ids: [current.id], content_type: 'product', value: current.price, currency: 'UAH'});
 }
 document.querySelector('.tabs').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) showTab(b.dataset.tab); });
+
+/* ================= Meta Pixel: події воронки ================= */
+// ViewContent — відкрили товар, InitiateCheckout — натиснули «Купити», Lead + Purchase — ввели e-mail і йдуть на оплату
+function track(event, params){ try { if (window.fbq) fbq('track', event, params); } catch(e){} }
 
 /* ================= forms: orders ================= */
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
@@ -755,11 +777,17 @@ function openPre(id){
   document.getElementById('oPrice').value = order.price;
   preOv.classList.add('open');
   setTimeout(()=>document.getElementById('oMail').focus(), 50);
+  track('InitiateCheckout', {content_name: p.name, content_ids: [id], value: p.price, currency: 'UAH', num_items: 1});
 }
 // Тест попиту: одразу після e-mail відправляємо на оплату, без кодів і проміжних кроків
 handle(orderForm, ()=>{
   orderForm.querySelector('[type=submit]').textContent = 'Переходимо до оплати…';
-  location.href = JAR_URL;
+  track('Lead', {content_name: order.product, value: order.price, currency: 'UAH'});
+  // «Покупка» (Purchase) — на тесті попиту рахуємо покупкою перехід на оплату після e-mail;
+  // саму оплату в Банці monobank піксель не бачить
+  track('Purchase', {content_name: order.product, content_type: 'product', value: order.price, currency: 'UAH'});
+  // невелика пауза, щоб подія встигла відправитися до переходу на сторінку оплати
+  setTimeout(()=>{ location.href = JAR_URL; }, 400);
 });
 function showPayStep(){
   order.email = document.getElementById('oMail').value;

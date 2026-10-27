@@ -1,0 +1,12 @@
+# важкі або тимчасові файли — не в репозиторій
+ads/raw/
+ads/thumbs/
+ads/probe
+instagram/out/frames/
+instagram/out/test/
+instagram/out/_*
+instagram/encode
+brand/_*
+*.zip
+.claude/
+.DS_Store

@@ -733,7 +733,7 @@ function openProduct(id){
 document.querySelector('.tabs').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) showTab(b.dataset.tab); });
 
 /* ================= Meta Pixel: події воронки ================= */
-// ViewContent — відкрили товар, InitiateCheckout — натиснули «Купити», Lead — ввели e-mail і йдуть на оплату
+// ViewContent — відкрили товар, InitiateCheckout — натиснули «Купити», Lead + Purchase — ввели e-mail і йдуть на оплату
 function track(event, params){ try { if (window.fbq) fbq('track', event, params); } catch(e){} }
 
 /* ================= forms: orders ================= */
@@ -783,6 +783,9 @@ function openPre(id){
 handle(orderForm, ()=>{
   orderForm.querySelector('[type=submit]').textContent = 'Переходимо до оплати…';
   track('Lead', {content_name: order.product, value: order.price, currency: 'UAH'});
+  // «Покупка» (Purchase) — на тесті попиту рахуємо покупкою перехід на оплату після e-mail;
+  // саму оплату в Банці monobank піксель не бачить
+  track('Purchase', {content_name: order.product, content_type: 'product', value: order.price, currency: 'UAH'});
   // невелика пауза, щоб подія встигла відправитися до переходу на сторінку оплати
   setTimeout(()=>{ location.href = JAR_URL; }, 400);
 });

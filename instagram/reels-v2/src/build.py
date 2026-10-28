@@ -1,6 +1,7 @@
 """Збирає органічний рілс: python3 -I build.py N [N ...]
 Як ads/src/build.py: сегменти з edit.json → 1080×1920@30, анімований оверлей з reels.html (кадри з overlay.js).
-Відмінності: БЕЗ музики (трек користувач додає в Instagram), у рілсі з "voice" — тільки голос з voice.wav.
+Основні файли БЕЗ музики (трек користувач додає в Instagram), у рілсі з "voice" — тільки голос з voice.wav.
+"sound": true — ще й reel-N-sound.mp4 з власною легкою музикою та ефектами (sound.py).
 Додаткові ефекти сегмента: "freeze" (стоп-кадр), "reverse" (перемотка назад), "zoom_at" [x, y] (наїзд на точку, напр. обличчя)."""
 import json, os, subprocess, sys, shutil
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -83,6 +84,20 @@ def main(n):
             '-filter_complex', vfil, '-map', '[v]', '-an', '-t', str(cfg['dur']), *venc, out)
     run('ffmpeg', '-v', 'error', '-y', '-ss', str(cfg.get('cover', 1.0)), '-i', out, '-frames:v', '1', '-q:v', '2', f'{OUT}/reel-{n}-cover.jpg')
     print('done', out)
+    if cfg.get('sound'): sound(n)
+
+def sound(n):
+    """Версія зі звуком reel-N-sound.mp4: те саме відео (без перекодування) + музика й ефекти з sound.py."""
+    work = f'{TMP}/r{n}'; os.makedirs(work, exist_ok=True)
+    run('python3', '-I', f'{HERE}/sound.py', str(n), f'{work}/sound.wav')
+    run('ffmpeg', '-v', 'error', '-y', '-i', f'{OUT}/reel-{n}.mp4', '-i', f'{work}/sound.wav',
+        '-filter_complex', '[1:a]loudnorm=I=-14:TP=-1.5:LRA=9,aresample=48000[a]', '-map', '0:v', '-map', '[a]',
+        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-shortest', '-movflags', '+faststart',
+        f'{OUT}/reel-{n}-sound.mp4')
+    print('done', f'{OUT}/reel-{n}-sound.mp4')
 
 if __name__ == '__main__':
-    for a in sys.argv[1:]: main(int(a))
+    if sys.argv[1] == 'sound':  # python3 -I build.py sound 1 2 4 — лише перезібрати звук до готових відео
+        for a in sys.argv[2:]: sound(int(a))
+    else:
+        for a in sys.argv[1:]: main(int(a))

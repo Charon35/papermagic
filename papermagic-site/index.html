@@ -123,6 +123,41 @@ section{padding:64px 0}
 .bundle-figs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .bundle-figs div{background:rgba(255,255,255,.14);border-radius:16px;padding:4px}
 
+/* packs */
+.packs{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:22px}
+.pack{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:26px;display:flex;flex-direction:column;gap:10px}
+.pack h3{font-size:24px;margin:0}
+.pack p{margin:0;color:var(--muted)}
+.pack-figs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pack-figs div{border-radius:12px;padding:2px}
+.pack-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:8px}
+.pack-foot .big{font-size:32px;font-weight:900}
+.old-p{text-decoration:line-through;color:var(--muted);font-weight:700}
+.save{background:#ffe0dc;color:#c8372a;border-radius:999px;padding:3px 12px;font-weight:800;font-size:14px}
+.bundle .save{background:var(--sun);color:var(--ink)}
+.bundle ul{margin:0 0 18px;padding-left:20px;opacity:.95}
+
+/* teachers */
+.teach{background:#fff;border:3px dashed var(--mint);border-radius:32px;padding:36px;display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:center}
+.teach ul{margin:12px 0 0;padding-left:20px;color:var(--muted);display:grid;gap:4px}
+.teach-box{background:var(--bg);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.teach-box .big{font-size:40px;font-weight:900;line-height:1}
+
+/* reviews */
+.rating{display:flex;align-items:center;gap:10px;font-weight:800}
+.stars{color:var(--sun);letter-spacing:2px;font-size:20px}
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.review{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:10px}
+.review img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px}
+.review p{margin:0}
+.review .who{color:var(--muted);font-weight:700;font-size:15px}
+.review-form{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;max-width:640px;margin-top:24px}
+.review-form label{display:block;font-weight:800;font-size:15px;margin:12px 0 6px}
+.review-form input[type=text],.review-form input[type=email],.review-form textarea,.review-form select{width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);font:inherit;background:#fff}
+.review-form textarea{resize:vertical;min-height:90px}
+.review-form .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ok-msg{background:#d6f5ec;border-radius:16px;padding:16px;font-weight:700}
+
 /* faq */
 .faq{max-width:820px}
 details{background:#fff;border-radius:18px;padding:18px 22px;margin-bottom:12px;box-shadow:var(--shadow)}
@@ -195,7 +230,8 @@ label.agree input{margin-top:3px;width:18px;height:18px;accent-color:var(--viole
 @media (max-width:980px){
   .grid{grid-template-columns:repeat(2,1fr)}
   .steps{grid-template-columns:repeat(2,1fr)}
-  .hero-grid,.about-grid,.bundle,.free{grid-template-columns:1fr}
+  .hero-grid,.about-grid,.bundle,.free,.teach{grid-template-columns:1fr}
+  .packs,.reviews{grid-template-columns:1fr}
   .foot-grid{grid-template-columns:1fr 1fr}
   .nav-links{display:none}
   .pm{grid-template-columns:1fr}
@@ -211,7 +247,8 @@ label.agree input{margin-top:3px;width:18px;height:18px;accent-color:var(--viole
   .meta{display:none}
   .steps{grid-template-columns:1fr}
   .facts{grid-template-columns:1fr}
-  .bundle,.free{padding:28px 20px}
+  .bundle,.free,.teach{padding:28px 20px}
+  .review-form .two{grid-template-columns:1fr}
   .free-form{padding:18px}
   .free-form .row{flex-direction:column}
   .foot-grid{grid-template-columns:1fr}
@@ -250,7 +287,9 @@ src="https://www.facebook.com/tr?id=1156412856815677&ev=PageView&noscript=1"
       <a href="#how">Як це працює</a>
       <a href="#about">Про розмальовки</a>
       <a href="#catalog">Каталог</a>
-      <a href="#contacts">Контакти</a>
+      <a href="#packs">Набори</a>
+      <a href="#teachers">Вихователям</a>
+      <a href="#free">Безкоштовно</a>
     </nav>
     <a href="https://www.instagram.com/papermagic_ua/" target="_blank" rel="noopener" class="cart-btn" style="text-decoration:none">📷 <span class="lbl">@papermagic_ua</span></a>
   </div>
@@ -278,6 +317,38 @@ src="https://www.facebook.com/tr?id=1156412856815677&ev=PageView&noscript=1"
         <div class="fig f2" data-fig="shark"></div>
         <div class="fig f1" data-fig="police"></div>
         <div class="fig f3" data-fig="dog"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="free" style="padding-top:24px">
+    <div class="wrap">
+      <div class="free">
+        <div class="free-art">
+          <span class="tag">0 ₴ · Безкоштовно</span>
+          <div data-fig="racer"></div>
+        </div>
+        <div>
+          <span class="eyebrow">Спробуйте безкоштовно</span>
+          <h2>Гоночна «Блискавка 95» — у подарунок</h2>
+          <p style="margin:0;color:var(--muted)">Введіть e-mail, і PDF одразу відкриється тут для завантаження, а копія прийде на пошту. Роздрукуйте, розмалюйте й склейте машинку разом із дитиною — і подивіться, як це працює.</p>
+          <form class="free-form" name="free" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="freeForm">
+            <input type="hidden" name="form-name" value="free">
+            <p hidden><label>Не заповнюйте: <input name="bot-field"></label></p>
+            <label for="fMail">Ваш e-mail</label>
+            <div class="row">
+              <input id="fMail" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
+              <button class="btn btn-primary" type="submit">Отримати PDF</button>
+            </div>
+            <label class="agree"><input type="checkbox" name="agree" value="так" required> Погоджуюсь отримувати листи від PaperMagic</label>
+            <p class="form-err" hidden>Не вдалося надіслати. Спробуйте ще раз за хвилину.</p>
+          </form>
+          <div class="free-form" id="freeDone" hidden>
+            <div class="ok-msg">🎉 Готово! Розмальовка ваша. Копію також надсилаємо на <b id="fMailShow"></b> (перевірте «Спам», якщо листа немає).</div>
+            <a class="btn btn-primary" href="free/blyskavka-95.pdf" download="PaperMagic-Blyskavka-95.pdf" target="_blank" rel="noopener" style="margin-top:14px;width:100%;justify-content:center">⬇️ Завантажити PDF</a>
+            <p class="hint">Сподобалось? Подивіться <a href="#packs">вигідні набори</a> — машинки, новорічний пак і пак для свят.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -344,20 +415,81 @@ src="https://www.facebook.com/tr?id=1156412856815677&ev=PageView&noscript=1"
     </div>
   </section>
 
-  <section>
+  <section id="packs">
     <div class="wrap">
+      <div class="sec-head">
+        <div><span class="eyebrow">Вигідніше разом</span><h2>Набори розмальовок</h2></div>
+        <p>Кілька фігурок одним PDF дешевше, ніж купувати поштучно. Друкуйте скільки завгодно.</p>
+      </div>
       <div class="bundle">
         <div>
-          <span class="eyebrow" style="color:var(--sun)">Вигідно</span>
-          <h2>Увесь набір — 8 фігурок</h2>
-          <p>Усі розмальовки одним PDF. Вистачить на цілий тиждень творчості або на дитяче свято.</p>
-          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-            <span class="big">449 ₴</span><span class="old" id="bundleOld"></span>
-            <button class="btn" data-pre="bundle">Купити набір</button>
+          <span class="eyebrow" style="color:var(--sun)">Для свят і садочків</span>
+          <h2>Пак на свята — усі 8 фігурок</h2>
+          <p>Для дня народження, ранку в садочку чи будь-якої компанії дітей. Друкуйте для всієї групи чи всіх гостей — кожна дитина збере свою іграшку.</p>
+          <ul><li>Усі 8 розмальовок одним PDF</li><li>Можна друкувати для групи садочка, класу чи свята</li><li>Вистачить на 2–3 години творчості для цілої компанії</li></ul>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <span class="big">449 ₴</span><span class="old" id="bundleOld"></span><span class="save" id="bundleSave"></span>
+            <button class="btn" data-pre="bundle">Купити пак</button>
           </div>
         </div>
         <div class="bundle-figs" id="bundleFigs"></div>
       </div>
+      <div class="packs" id="packGrid"></div>
+    </div>
+  </section>
+
+  <section id="teachers">
+    <div class="wrap">
+      <div class="teach">
+        <div>
+          <span class="eyebrow">Для вихователів і вчителів</span>
+          <h2>Доступ до всіх розмальовок назавжди</h2>
+          <p style="margin:0;color:var(--muted)">Одна оплата — і всі фігурки PaperMagic ваші для занять у садочку, школі чи гуртку.</p>
+          <ul>
+            <li>Усі 8 нинішніх фігурок одразу</li>
+            <li>Усі нові фігурки, які ми випустимо, — безкоштовно на ваш e-mail</li>
+            <li>Друкуйте для своїх груп і класів без обмежень</li>
+            <li>Без підписки та щомісячних платежів</li>
+          </ul>
+        </div>
+        <div class="teach-box">
+          <span class="big">799 ₴</span>
+          <span style="color:var(--muted);font-weight:700">одноразово · доступ назавжди</span>
+          <button class="btn btn-primary" data-pre="teacher" style="justify-content:center">Отримати доступ</button>
+          <a class="btn btn-ghost" style="justify-content:center" href="mailto:papermagic.ua@gmail.com?subject=%D0%A1%D0%BF%D1%96%D0%B2%D0%BF%D1%80%D0%B0%D1%86%D1%8F%20%D0%B7%20PaperMagic">✉️ Обговорити співпрацю</a>
+          <p class="hint" style="margin:0">Садочок, мережа гуртків, школа чи творчий клуб? Напишіть на papermagic.ua@gmail.com — підготуємо умови саме для вас.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reviews">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="eyebrow">Відгуки</span><h2>Що кажуть батьки</h2></div>
+        <div class="rating" id="ratingBox" hidden><span class="stars" id="ratingStars"></span><span id="ratingText"></span></div>
+      </div>
+      <div class="reviews" id="reviewGrid"></div>
+      <p id="reviewEmpty" style="color:var(--muted);margin:0">Ми щойно запустилися, і перші відгуки ще збираємо. Склеїли фігурку? Розкажіть нам — за відгук із фото надішлемо ще одну розмальовку в подарунок 🎁</p>
+      <form class="review-form" name="review" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" id="reviewForm">
+        <input type="hidden" name="form-name" value="review">
+        <p hidden><label>Не заповнюйте: <input name="bot-field"></label></p>
+        <h3 style="margin:0">Поділіться враженням</h3>
+        <div class="two">
+          <div><label for="rName">Ваше імʼя</label><input id="rName" name="name" type="text" required maxlength="60" placeholder="Олена, Київ"></div>
+          <div><label for="rStars">Оцінка</label><select id="rStars" name="stars"><option value="5">★★★★★ — чудово</option><option value="4">★★★★ — добре</option><option value="3">★★★ — нормально</option><option value="2">★★ — так собі</option><option value="1">★ — погано</option></select></div>
+        </div>
+        <label for="rText">Відгук</label>
+        <textarea id="rText" name="text" required maxlength="1000" placeholder="Яку фігурку збирали, скільки років дитині, що сподобалось…"></textarea>
+        <div class="two">
+          <div><label for="rMail">E-mail (для подарунка, не публікуємо)</label><input id="rMail" name="email" type="email" required placeholder="you@example.com"></div>
+          <div><label for="rPhoto">Фото фігурки чи процесу</label><input id="rPhoto" name="photo" type="file" accept="image/*"></div>
+        </div>
+        <label class="agree"><input type="checkbox" name="publish" value="так" required> Дозволяю опублікувати відгук і фото на сайті та в Instagram PaperMagic</label>
+        <button class="btn btn-primary" type="submit" style="margin-top:16px">Надіслати відгук</button>
+        <p class="form-err" hidden>Не вдалося надіслати. Спробуйте ще раз за хвилину.</p>
+      </form>
+      <div class="review-form" id="reviewDone" hidden><div class="ok-msg">💛 Дякуємо! Ми прочитаємо відгук і надішлемо подарунок на ваш e-mail.</div></div>
     </div>
   </section>
 
@@ -368,7 +500,9 @@ src="https://www.facebook.com/tr?id=1156412856815677&ev=PageView&noscript=1"
       <details><summary>Як купити?</summary><p>Натисніть «Купити» на фігурці, вкажіть e-mail, і вас одразу перекине на оплату в monobank (картка будь-якого банку, Apple Pay чи Google Pay). Після оплати PDF прийде на вашу пошту. Також можна замовити в Direct: @papermagic_ua.</p></details>
       <details><summary>Коли прийде PDF?</summary><p>Зазвичай протягом години після оплати (щодня з 9:00 до 21:00). Якщо листа немає, перевірте «Спам» або напишіть нам у Direct, вказавши код замовлення.</p></details>
       <details><summary>На якому папері краще друкувати?</summary><p>Підійде звичайний офісний папір 80 г/м². Щоб фігурка була міцнішою, беріть щільніший — 120–160 г/м².</p></details>
-      <details><summary>Можна роздрукувати кілька разів?</summary><p>Так. Друкуйте для своєї родини скільки завгодно, наприклад окремий аркуш для кожної дитини. Продавати чи поширювати файл не можна.</p></details>
+      <details><summary>Можна роздрукувати кілька разів?</summary><p>Так. Друкуйте для своєї родини скільки завгодно, наприклад окремий аркуш для кожної дитини. З «Паком на свята» можна друкувати для групи садочка, класу чи гостей на святі, а з доступом для вихователів — для всіх ваших груп. Продавати чи поширювати сам файл не можна.</p></details>
+      <details><summary>Чи є безкоштовна розмальовка?</summary><p>Так, гоночна «Блискавка 95». Введіть e-mail у блоці <a href="#free">«Спробуйте безкоштовно»</a> — PDF одразу можна завантажити, а копія прийде на пошту.</p></details>
+      <details><summary>Я вихователька / вчителька. Що мені обрати?</summary><p><a href="#teachers">Доступ для вихователів і вчителів</a>: одна оплата 799 ₴, усі фігурки й усі майбутні новинки, друк для ваших груп без обмежень. Для садочків і шкіл можлива співпраця — пишіть на papermagic.ua@gmail.com.</p></details>
       <details><summary>Чи впорається дитина сама?</summary><p>Розмалювати — так. Вирізати й склеїти дошкільнятам краще з дорослим, а дітям від 7–8 років зазвичай уже під силу самим.</p></details>
       <details><summary>Чим краще розмальовувати?</summary><p>Кольоровими олівцями, фломастерами чи маркерами. Акварель теж можна, але дайте аркушу висохнути перед склеюванням.</p></details>
     </div>
@@ -670,7 +804,7 @@ const BG = {police:'#e8eeff', racer:'#ffe8e3', shark:'#e3f1ff', cupcake:'#ffeaf3
 /* ================= products ================= */
 const PRODUCTS = [
   {id:'police',  name:'Поліцейське авто',          sheet:3, price:99, cat:'transport', top:true, diff:'Легко',   time:'30–40 хв', desc:'Справжній патрульний автомобіль з мигалкою на даху. Розмалюй у класичні кольори або вигадай власну поліцію.'},
-  {id:'racer',   name:'Гоночна «Блискавка 95»',    sheet:8, price:99, cat:'transport', top:true, diff:'Середньо', time:'40–50 хв', desc:'Найшвидша машинка набору: номер 95, блискавка на боці й великі очі на лобовому склі.'},
+  {id:'racer',   name:'Гоночна «Блискавка 95»',    sheet:8, price:0, was:99, free:true, cat:'transport', top:true, diff:'Середньо', time:'40–50 хв', desc:'Найшвидша машинка набору: номер 95, блискавка на боці й великі очі на лобовому склі. Даруємо безкоштовно за e-mail.'},
   {id:'shark',   name:'Весела акула',              sheet:5, price:89, cat:'animals',   top:true, diff:'Легко',   time:'25–35 хв', desc:'Зубаста, але дуже усміхнена акула з гострими гранями. Складається всього з кількох згинів.'},
   {id:'cupcake', name:'Фудтрак «Кекс»',            sheet:2, price:99, cat:'transport', top:true, diff:'Складно',  time:'50–60 хв', desc:'Солодкий фургончик з величезним кексом на даху. Тут можна розгулятися з кольорами глазурі та посипки.'},
   {id:'hippie',  name:'Хіпі-фургон',               sheet:1, price:99, cat:'transport', diff:'Середньо', time:'40–50 хв', desc:'Яскравий фургон для мандрівок, весь у квітах. Ідеальний для любителів пригод і детективних історій.', isNew:true},
@@ -678,14 +812,29 @@ const PRODUCTS = [
   {id:'truck',   name:'Вантажівка PaperMagic',     sheet:6, price:89, cat:'transport', diff:'Легко',   time:'30–40 хв', desc:'Велика вантажівка з будкою: на бортах можна намалювати власний логотип чи малюнок.'},
   {id:'dog',     name:'Песик Шнауцер',             sheet:4, price:99, cat:'animals',   diff:'Середньо', time:'40–50 хв', desc:'Кумедний бородатий песик із закрученим хвостиком. Стане найкращим другом на полиці.', isNew:true},
 ];
-const BUNDLE = {id:'bundle', name:'Набір «Усі 8 фігурок»', price:449};
-const byId = id => id==='bundle' ? BUNDLE : PRODUCTS.find(p=>p.id===id);
+// ціна поштучно (для безкоштовної «Блискавки» — її звичайна ціна)
+const full = p => p.was || p.price;
+const sumOf = ids => ids.reduce((s,id)=>s+full(PRODUCTS.find(p=>p.id===id)),0);
+const BUNDLE = {id:'bundle', name:'Пак на свята — усі 8 фігурок', price:449, items:PRODUCTS.map(p=>p.id)};
+const PACKS = [
+  {id:'cars', name:'Пак «Машинки» — 5 фігурок', short:'Пак «Машинки»', price:385, eyebrow:'🚗 Для любителів транспорту',
+   desc:'Поліцейське авто, фудтрак «Кекс», хіпі-фургон, мікроавтобус «Жабенята» й вантажівка — цілий автопарк на полицю. А «Блискавку 95» додайте безкоштовно.',
+   items:['police','cupcake','hippie','bus','truck']},
+  {id:'winter', name:'Пак «Миколай і Новий рік» — 4 фігурки', short:'Пак «Миколай і Новий рік»', price:299, eyebrow:'🎄 До 6 грудня і на канікули',
+   desc:'Подарунок під подушку від Миколая чи заняття на зимові канікули: вантажівка, що везе подарунки, святковий фудтрак «Кекс», песик Шнауцер і поліцейське авто.',
+   items:['truck','cupcake','dog','police']},
+];
+const TEACHER = {id:'teacher', name:'Доступ для вихователів і вчителів', price:799};
+const SPECIAL = [BUNDLE, TEACHER, ...PACKS];
+const byId = id => SPECIAL.find(p=>p.id===id) || PRODUCTS.find(p=>p.id===id);
 const CAT = {transport:'Транспорт', animals:'Тваринки'};
 const fig = id => FIGS[id]();
 
 function card(p){
-  const badge = p.top ? '<span class="badge">Хіт продажів</span>' : p.isNew ? '<span class="badge new">Новинка</span>' : '';
-  const foot = `<span class="price">${p.price} <small>₴</small></span><button class="add" data-pre="${p.id}">Купити</button>`;
+  const badge = p.free ? '<span class="badge free-b">Безкоштовно</span>' : p.top ? '<span class="badge">Хіт продажів</span>' : p.isNew ? '<span class="badge new">Новинка</span>' : '';
+  const foot = p.free
+    ? `<span class="price">0 <small>₴</small> <small class="old-p">${p.was} ₴</small></span><a class="add" href="#free" style="text-decoration:none">Отримати</a>`
+    : `<span class="price">${p.price} <small>₴</small></span><button class="add" data-pre="${p.id}">Купити</button>`;
   return `<article class="card">
     <button class="card-art" style="background:${BG[p.id]}" data-open="${p.id}" aria-label="Детальніше: ${p.name}">
       ${badge}${fig(p.id)}
@@ -708,7 +857,35 @@ document.getElementById('filters').addEventListener('click', e=>{
   renderCat(b.dataset.f);
 });
 document.getElementById('bundleFigs').innerHTML = PRODUCTS.map(p=>`<div>${fig(p.id)}</div>`).join('');
-document.getElementById('bundleOld').textContent = PRODUCTS.reduce((s,p)=>s+p.price,0)+' ₴';
+document.getElementById('bundleOld').textContent = sumOf(BUNDLE.items)+' ₴';
+document.getElementById('bundleSave').textContent = 'вигода '+(sumOf(BUNDLE.items)-BUNDLE.price)+' ₴';
+document.getElementById('packGrid').innerHTML = PACKS.map(k=>`<article class="pack">
+  <span class="eyebrow" style="margin:0">${k.eyebrow}</span>
+  <h3>${k.short}</h3>
+  <div class="pack-figs">${k.items.map(id=>`<div style="background:${BG[id]}">${fig(id)}</div>`).join('')}</div>
+  <p>${k.desc}</p>
+  <div class="pack-foot"><span class="big">${k.price} ₴</span><span class="old-p">${sumOf(k.items)} ₴</span><span class="save">вигода ${sumOf(k.items)-k.price} ₴</span>
+    <button class="btn btn-primary" data-pre="${k.id}" style="margin-left:auto">Купити пак</button></div>
+</article>`).join('');
+
+/* ================= reviews ================= */
+// Лише справжні відгуки покупців (з їхнього дозволу). photo — файл у img/reviews/, можна залишити порожнім.
+// {name:'Олена', city:'Київ', stars:5, text:'…', photo:'img/reviews/olena.jpg', product:'Поліцейське авто'}
+const REVIEWS = [];
+if (REVIEWS.length){
+  const avg = REVIEWS.reduce((s,r)=>s+r.stars,0)/REVIEWS.length;
+  document.getElementById('ratingStars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg));
+  document.getElementById('ratingText').textContent = avg.toFixed(1).replace('.',',') + ' з 5 · ' + REVIEWS.length + ' відгуків';
+  document.getElementById('ratingBox').hidden = false;
+  document.getElementById('reviewEmpty').hidden = true;
+  const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  document.getElementById('reviewGrid').innerHTML = REVIEWS.map(r=>`<article class="review">
+    ${r.photo ? `<img src="${esc(r.photo)}" alt="Фото від ${esc(r.name)}" loading="lazy">` : ''}
+    <span class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</span>
+    <p>${esc(r.text)}</p>
+    <span class="who">${esc(r.name)}${r.city?', '+esc(r.city):''}${r.product?' · '+esc(r.product):''}</span>
+  </article>`).join('');
+}
 
 /* ================= product modal ================= */
 const pOv = document.getElementById('pOverlay'); let current = null;
@@ -723,9 +900,9 @@ function openProduct(id){
   document.getElementById('pmCat').textContent = CAT[current.cat];
   document.getElementById('pmTitle').textContent = current.name;
   document.getElementById('pmDesc').textContent = current.desc;
-  document.getElementById('pmPrice').textContent = current.price+' ₴';
-  document.getElementById('pmAdd').textContent = '💳 Купити';
-  document.getElementById('pmNote').textContent = 'Оплата карткою через monobank, PDF — на e-mail протягом години.';
+  document.getElementById('pmPrice').textContent = current.free ? 'Безкоштовно' : current.price+' ₴';
+  document.getElementById('pmAdd').textContent = current.free ? '🎁 Отримати PDF' : '💳 Купити';
+  document.getElementById('pmNote').textContent = current.free ? 'Введіть e-mail — PDF одразу можна завантажити, копія прийде на пошту.' : 'Оплата карткою через monobank, PDF — на e-mail протягом години.';
   document.getElementById('pmList').innerHTML = `<li>Формат: PDF, 1 аркуш А4</li><li>Складність: ${current.diff.toLowerCase()}</li><li>Час: ${current.time}</li><li>Вік: 5+ (молодшим — з дорослим)</li><li>Інструкція прямо на аркуші</li>`;
   showTab('fig'); pOv.classList.add('open');
   track('ViewContent', {content_name: current.name, content_ids: [current.id], content_type: 'product', value: current.price, currency: 'UAH'});
@@ -769,8 +946,9 @@ function openPre(id){
   order = {code: 'PM-' + Math.floor(1000 + Math.random()*9000), product: p.name, price: p.price};
   document.getElementById('preTitle').textContent = p.name;
   document.getElementById('prePrice').textContent = p.price+' ₴ · PDF';
-  document.getElementById('preFig').style.background = id==='bundle' ? '#efe9ff' : BG[id];
-  document.getElementById('preFig').innerHTML = id==='bundle' ? '<span style="font-size:30px">🎁</span>' : fig(id);
+  const icon = {bundle:'🎁', cars:'🚗', winter:'🎄', teacher:'🍎'}[id];
+  document.getElementById('preFig').style.background = icon ? '#efe9ff' : BG[id];
+  document.getElementById('preFig').innerHTML = icon ? `<span style="font-size:30px">${icon}</span>` : fig(id);
   orderForm.reset(); orderForm.hidden = false; payStep.hidden = true;
   document.getElementById('oCode').value = order.code;
   document.getElementById('oProduct').value = order.product;
@@ -809,7 +987,35 @@ document.getElementById('payGo').addEventListener('click', ()=>{
   toast('Код ' + order.code + ' скопійовано: вставте його в коментар');
 });
 
-document.getElementById('pmAdd').onclick = () => { const id = current.id; pOv.classList.remove('open'); openPre(id); };
+document.getElementById('pmAdd').onclick = () => {
+  const id = current.id; pOv.classList.remove('open');
+  if (current.free){ document.getElementById('free').scrollIntoView({behavior:'smooth'}); setTimeout(()=>document.getElementById('fMail').focus({preventScroll:true}), 500); return; }
+  openPre(id);
+};
+
+/* ================= безкоштовна «Блискавка 95» за e-mail ================= */
+// Netlify Forms зберігає e-mail, функція /api/free-sheet одразу надсилає лист із PDF,
+// а кнопка завантаження з'являється на сторінці, не чекаючи листа.
+const freeForm = document.getElementById('freeForm');
+handle(freeForm, ()=>{
+  const email = document.getElementById('fMail').value;
+  fetch('/api/free-sheet', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email})}).catch(()=>{});
+  track('Lead', {content_name: 'Безкоштовна «Блискавка 95»', value: 0, currency: 'UAH'});
+  document.getElementById('fMailShow').textContent = email;
+  freeForm.hidden = true; document.getElementById('freeDone').hidden = false;
+});
+
+/* ================= форма відгуку (з фото, тому multipart) ================= */
+const reviewForm = document.getElementById('reviewForm');
+reviewForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  const btn = reviewForm.querySelector('[type=submit]'), err = reviewForm.querySelector('.form-err');
+  btn.disabled = true; err.hidden = true;
+  let ok = ['localhost','127.0.0.1'].includes(location.hostname);
+  try { const r = await fetch('/', {method:'POST', body: new FormData(reviewForm)}); ok = ok || r.ok; } catch(e){}
+  btn.disabled = false;
+  if (ok){ reviewForm.hidden = true; document.getElementById('reviewDone').hidden = false; } else err.hidden = false;
+});
 
 /* global clicks */
 const closeAll = () => { pOv.classList.remove('open'); preOv.classList.remove('open'); };

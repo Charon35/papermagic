@@ -870,11 +870,14 @@ document.getElementById('packGrid').innerHTML = PACKS.map(k=>`<article class="pa
 /* ================= reviews ================= */
 // Лише справжні відгуки покупців (з їхнього дозволу). photo — файл у img/reviews/, можна залишити порожнім.
 // {name:'Олена', city:'Київ', stars:5, text:'…', photo:'img/reviews/olena.jpg', product:'Поліцейське авто'}
-const REVIEWS = [];
+const REVIEWS = [
+  {name:'Анна', stars:5, text:'Розмальовували всією сімʼєю, варіант як провести класно час з дитиною — супер.'},
+];
+const reviewsWord = n => n%10===1 && n%100!==11 ? 'відгук' : [2,3,4].includes(n%10) && ![12,13,14].includes(n%100) ? 'відгуки' : 'відгуків';
 if (REVIEWS.length){
   const avg = REVIEWS.reduce((s,r)=>s+r.stars,0)/REVIEWS.length;
   document.getElementById('ratingStars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg));
-  document.getElementById('ratingText').textContent = avg.toFixed(1).replace('.',',') + ' з 5 · ' + REVIEWS.length + ' відгуків';
+  document.getElementById('ratingText').textContent = avg.toFixed(1).replace('.',',') + ' з 5 · ' + REVIEWS.length + ' ' + reviewsWord(REVIEWS.length);
   document.getElementById('ratingBox').hidden = false;
   document.getElementById('reviewEmpty').hidden = true;
   const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PaperMagic 3D figure</title>
+<style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+</head>
+<body>
+<script type="module">
+/* Паперова машинка з шаблону PaperMagic: дві розфарбовані боковини + стрічка-дах, склеєна по профілю.
+   window.setup({model, w, h}) → завантажує текстури; window.frame({rot, el, dist, fov, lookY, t}) → рендер кадру. */
+import * as THREE from '../vendor/three.module.js';
+
+let renderer, scene, camera, car, key;
+const loader = new THREE.TextureLoader();
+const load = url => new Promise(r => loader.load(url, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; r(t); }));
+
+function paperBump(){
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d'), d = g.createImageData(512, 512);
+  for (let i = 0; i < d.data.length; i += 4){ const v = 128 + (Math.random() - .5) * 60; d.data[i] = d.data[i+1] = d.data[i+2] = v; d.data[i+3] = 255; }
+  g.putImageData(d, 0, 0); g.filter = 'blur(1px)'; g.drawImage(c, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+function radial(){
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.18)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(c);
+}
+
+window.setup = async (cfg) => {
+  const M = cfg.model, base = cfg.base || '';
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(cfg.w, cfg.h);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = cfg.exposure || 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setClearColor(0x000000, 0);
+  document.body.appendChild(renderer.domElement);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(30, cfg.w / cfg.h, 5, 20000);
+
+  // світло: тепле вікно зліва-зверху, мʼякий заповнювальний, контровий
+  scene.add(new THREE.HemisphereLight(0xfff6ea, 0x8a6a4a, 1.25));
+  key = new THREE.DirectionalLight(0xfff0dc, 2.6);
+  key.position.set(-420, 700, 380); key.castShadow = true;
+  key.shadow.mapSize.set(4096, 4096); key.shadow.radius = 6; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.6;
+  Object.assign(key.shadow.camera, { left: -500, right: 500, top: 500, bottom: -500, near: 10, far: 3000 });
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xdfe8ff, 0.8); rim.position.set(500, 300, -600); scene.add(rim);
+
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.ShadowMaterial({ opacity: cfg.shadow ?? 0.32 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+
+  const [side, side2, strip] = await Promise.all([load(base + M.side), load(base + (M.side2 || M.side)), load(base + M.strip)]);
+  const bump = paperBump();
+  const mat = (map, extra = {}) => new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 0.6, roughness: 0.88, metalness: 0,
+    side: THREE.DoubleSide, alphaTest: 0.5, transparent: false, ...extra });
+
+  car = new THREE.Group(); const body = new THREE.Group(); car.add(body);
+  const W = M.width, yb = M.sideBox.yBot, dy = M.H - yb;   // підлога = низ коліс
+  // боковини
+  const sidePlane = (tex, box, z) => {
+    const g = new THREE.PlaneGeometry(box.w, box.h);
+    // низ коліс кожної боковини — на підлозі (y = 0), передній край збігається з ближньою боковиною
+    const m = new THREE.Mesh(g, mat(tex)); m.position.set(box.w / 2 + (M.sideBox.x0 - box.x0), box.yBot - box.h / 2, z);
+    m.castShadow = true; m.receiveShadow = true;
+    m.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5 });
+    return m;
+  };
+  body.add(sidePlane(side, M.sideBox, W / 2));
+  const b2 = M.side2Box || M.sideBox;
+  body.add(sidePlane(side2, { ...b2 }, -W / 2));
+
+  // стрічка по профілю (згини — плоскі грані, як у справжньому папері)
+  const P = M.path.map(([x, y]) => [x, y - dy]);
+  const segL = []; let tot = 0;
+  for (let i = 0; i < P.length - 1; i++){ const l = Math.hypot(P[i+1][0] - P[i][0], P[i+1][1] - P[i][1]); segL.push(l); tot += l; }
+  const pos = [], uv = [], idx = [];
+  const u0 = (M.stripW - W) / 2 / M.stripW, u1 = 1 - u0;
+  let s = 0;
+  for (let i = 0; i < P.length - 1; i++){
+    const a = P[i], b = P[i+1], v0 = 1 - s / tot, v1 = 1 - (s + segL[i]) / tot, n = pos.length / 3;
+    pos.push(a[0], a[1], W / 2,  a[0], a[1], -W / 2,  b[0], b[1], W / 2,  b[0], b[1], -W / 2);
+    uv.push(u0, v0, u1, v0, u0, v1, u1, v1);
+    idx.push(n, n + 2, n + 1, n + 1, n + 2, n + 3);
+    s += segL[i];
+  }
+  const sg = new THREE.BufferGeometry();
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  sg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  sg.setIndex(idx); sg.computeVertexNormals();
+  const sm = new THREE.Mesh(sg, mat(strip, { alphaTest: 0 })); sm.castShadow = sm.receiveShadow = true; body.add(sm);
+
+  // днище
+  const sill = M.sill - dy, xa = P[0][0], xb = P[P.length - 1][0];
+  const bot = new THREE.Mesh(new THREE.PlaneGeometry(xb - xa, W), new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.9, side: THREE.DoubleSide }));
+  bot.rotation.x = Math.PI / 2; bot.position.set((xa + xb) / 2, sill, 0); body.add(bot);
+
+  // додаткові обʼєми (мигалка тощо): {box:[x,y,z,w,h,d], color}
+  for (const e of (M.extras || [])){
+    const [x, y, z, w, h, d] = e.box;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: e.color, roughness: 0.8, bumpMap: bump, bumpScale: 0.5,
+      emissive: e.emissive || 0x000000, emissiveIntensity: e.ei || 0 }));
+    m.position.set(x, y - dy + h / 2, z); m.castShadow = true; body.add(m);
+  }
+  body.position.x = -M.L / 2;
+
+  // контактна тінь
+  const cs = new THREE.Mesh(new THREE.PlaneGeometry(M.L * 1.15, W * 1.9), new THREE.MeshBasicMaterial({ map: radial(), transparent: true, depthWrite: false }));
+  cs.rotation.x = -Math.PI / 2; cs.position.y = 0.3; car.add(cs);
+  scene.add(car);
+  return true;
+};
+
+window.frame = (o) => {
+  car.rotation.y = o.rot || 0;
+  car.position.set(o.x || 0, o.y || 0, o.z || 0);
+  car.scale.setScalar(o.scale || 1);
+  const el = o.el ?? 0.42, az = o.az ?? 0, dist = o.dist ?? 1300;
+  camera.fov = o.fov || 30; camera.updateProjectionMatrix();
+  camera.position.set(Math.sin(az) * Math.cos(el) * dist, Math.sin(el) * dist + (o.lookY || 60), Math.cos(az) * Math.cos(el) * dist);
+  camera.lookAt(0, o.lookY || 60, 0);
+  if (o.camShift) camera.setViewOffset(o.vw, o.vh, o.camShift[0], o.camShift[1], o.vw, o.vh);
+  renderer.render(scene, camera);
+};
+window.READY = true;
+</script>
+</body>
+</html>

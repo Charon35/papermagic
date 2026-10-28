@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic reels v3 overlay</title>
+<style>
+/* Новий стиль v3 «спокійний зошит»: Lora (засічки) + Caveat (рукопис) + Manrope, природні кольори, папір і скотч */
+@font-face{font-family:Lora;font-weight:700;src:url(fonts/lora-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0400-04FF,U+2116}
+@font-face{font-family:Lora;font-weight:700;src:url(fonts/lora-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20B4,U+2190-21FF}
+@font-face{font-family:Lora;font-style:italic;font-weight:600;src:url(fonts/lora-cyrillic-600-italic.woff2) format('woff2');unicode-range:U+0400-04FF}
+@font-face{font-family:Lora;font-style:italic;font-weight:600;src:url(fonts/lora-latin-600-italic.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20B4}
+@font-face{font-family:Caveat;font-weight:600;src:url(fonts/caveat-cyrillic-600-normal.woff2) format('woff2');unicode-range:U+0400-04FF}
+@font-face{font-family:Caveat;font-weight:600;src:url(fonts/caveat-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20B4,U+2190-21FF}
+@font-face{font-family:Manrope;font-weight:800;src:url(fonts/manrope-cyrillic-800-normal.woff2) format('woff2');unicode-range:U+0400-04FF}
+@font-face{font-family:Manrope;font-weight:800;src:url(fonts/manrope-latin-800-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20B4}
+@font-face{font-family:Manrope;font-weight:700;src:url(fonts/manrope-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0400-04FF}
+@font-face{font-family:Manrope;font-weight:700;src:url(fonts/manrope-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20B4}
+:root{--paper:#f6efe4;--paper2:#efe4d3;--ink:#2b2a28;--sage:#6f8f72;--sage-d:#3f5d4a;--terra:#d26f45;--sky:#8fb6d4;--sun:#f2c14e;--muted:#7b7368}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow:hidden;background:transparent}
+body{width:1080px;height:1920px;font-family:Manrope,sans-serif;color:var(--ink)}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden}
+.abs{position:absolute}
+.serif{font-family:Lora,serif;font-weight:700;letter-spacing:-.01em;line-height:1.08}
+.it{font-family:Lora,serif;font-style:italic;font-weight:600}
+.hand{font-family:Caveat,cursive;font-weight:600;line-height:1}
+.tag{font-family:Manrope;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.card{background:var(--paper);border-radius:26px;box-shadow:0 22px 50px rgba(30,24,16,.28),0 2px 0 rgba(255,255,255,.6) inset}
+.card::before{content:'';position:absolute;inset:0;border-radius:26px;opacity:.5;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .38  0 0 0 0 .3  0 0 0 .18 0'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>")}
+.tape{position:absolute;width:190px;height:54px;background:rgba(242,214,160,.78);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const W = 1080, H = 1920;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = x => 1 - Math.pow(1 - x, 3);
+const eInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const box = (style, html = '') => `<div class="abs" style="${style}">${html}</div>`;
+const LOGO = (c = '#2b2a28') => `<svg viewBox="0 0 900 860" width="100%" height="100%"><g fill="none" stroke="${c}" stroke-width="26" stroke-linejoin="round" stroke-linecap="round"><path d="M195 165 L248 525 M195 165 L560 528"/><path d="M25 428 L330 578 M25 428 L305 738 L440 708"/><path d="M290 615 L445 465 L655 628 L650 838 L290 615 Z M290 615 L305 738"/><path d="M445 465 Q470 600 515 640 Q590 740 645 828" stroke-width="12"/><path d="M560 545 L712 290 L772 292 L655 628 M772 292 L860 405 L752 362"/></g><g fill="${c}"><path d="M453 20 Q467.0 76.0 523 90 Q467.0 104.0 453 160 Q439.0 104.0 383 90 Q439.0 76.0 453 20 Z"/><path d="M648 158 Q657.4 195.6 695 205 Q657.4 214.4 648 252 Q638.6 214.4 601 205 Q638.6 195.6 648 158 Z"/><path d="M523 270 Q531.0 302.0 563 310 Q531.0 318.0 523 350 Q515.0 318.0 483 310 Q515.0 302.0 523 270 Z"/><path d="M825 538 Q836.4 583.6 882 595 Q836.4 606.4 825 652 Q813.6 606.4 768 595 Q813.6 583.6 825 538 Z"/></g></svg>`;
+
+// поява/зникнення: мʼякий підйом + проявлення
+const vis = (t, a, b, d = .5) => t < a || t > b ? 0 : eOut(prog(t, a, a + d)) * (1 - eInOut(prog(t, b - .35, b)));
+const rise = (t, a, d = .6, px = 50) => (1 - eOut(prog(t, a, a + d))) * px;
+
+// рукописна лінія/стрілка, що «малюється»: path у системі 0..w × 0..h
+const drawPath = (d, w, h, p, color = 'var(--terra)', sw = 9, extra = '') =>
+  `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible"><path d="${d}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" pathLength="1000" stroke-dasharray="1000" stroke-dashoffset="${1000 * (1 - p)}" ${extra}/></svg>`;
+const underline = (w, p, color) => drawPath(`M4 14 C ${w * .3} 4, ${w * .6} 22, ${w - 4} 8`, w, 26, p, color, 8);
+const arrow = (p, flip = false, color = 'var(--terra)') => drawPath(flip ? 'M150 10 C 120 70, 70 100, 12 118 M12 118 L 52 92 M12 118 L 50 134' : 'M10 10 C 40 70, 90 100, 148 118 M148 118 L 108 92 M148 118 L 110 134', 160, 140, p, color, 8);
+
+// прогрес «01 02 03 04» угорі
+const dots = (t, n, cur, a, b, top = 268, light = true) => {
+  const o = vis(t, a, b, .4); if (!o) return '';
+  let s = ''; for (let i = 0; i < n; i++) s += `<span style="display:inline-block;width:${i === cur ? 64 : 16}px;height:16px;border-radius:8px;margin:0 6px;background:${i === cur ? 'var(--sun)' : (light ? 'rgba(255,255,255,.6)' : 'rgba(43,42,40,.25)')}"></span>`;
+  return box(`left:0;right:0;top:${top}px;text-align:center;opacity:${o}`, s);
+};
+
+// картка-пункт: тег, заголовок із підкресленням, рукописна примітка
+function point(t, a, b, o){
+  const v = vis(t, a, b); if (!v) return '';
+  const top = o.top ?? 1180, rot = o.rot ?? -1.2;
+  const ul = eInOut(prog(t, a + .45, a + 1.0));
+  let s = box(`left:70px;right:70px;top:${top + rise(t, a)}px;opacity:${v};transform:rotate(${rot}deg)`,
+    `<div class="card" style="position:relative;padding:40px 46px 38px">
+       <div class="tape" style="left:50%;top:-26px;transform:translateX(-50%) rotate(${-rot * 2 + 2}deg)"></div>
+       <div class="tag" style="font-size:26px;color:var(--sage-d);margin-bottom:14px">${o.tag}</div>
+       <div class="serif" style="font-size:${o.size || 76}px;position:relative;display:inline-block">${o.title}
+         <div style="position:absolute;left:0;bottom:-18px">${underline(o.ulw || 420, ul, o.ulc || 'var(--terra)')}</div></div>
+       <div style="font-size:38px;font-weight:700;line-height:1.3;color:#4a453e;margin-top:30px">${o.text}</div>
+     </div>`);
+  if (o.note){ const nv = vis(t, a + .9, b, .4);
+    s += box(`left:${o.note.x}px;top:${o.note.y}px;opacity:${nv};transform:rotate(${o.note.r || -4}deg)`,
+      `<div class="hand" style="font-size:${o.note.size || 66}px;color:${o.note.c || '#fff'};text-shadow:0 2px 14px rgba(0,0,0,.45);white-space:nowrap">${o.note.txt}</div>`);
+    if (o.note.arrow) s += box(`left:${o.note.arrow[0]}px;top:${o.note.arrow[1]}px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))`, arrow(eInOut(prog(t, a + 1.1, a + 1.7)), o.note.arrow[2], o.note.c || '#fff'));
+  }
+  return s;
+}
+
+// великий хук угорі
+function hook(t, a, b, o){
+  const v = vis(t, a, b, .55); if (!v) return '';
+  const ul = eInOut(prog(t, a + .6, a + 1.2));
+  return box(`left:0;right:0;top:0;height:${o.shade || 980}px;opacity:${v};background:linear-gradient(rgba(25,20,14,.62),rgba(25,20,14,.38) 60%,rgba(25,20,14,0))`)
+    + box(`left:80px;right:80px;top:${(o.top || 300) + rise(t, a, .7, 40)}px;opacity:${v};color:#fff;text-shadow:0 3px 24px rgba(0,0,0,.35)`,
+      `<div class="tag" style="font-size:28px;color:var(--sun);margin-bottom:22px">${o.tag}</div>
+       <div class="serif" style="font-size:${o.size || 96}px">${o.title}</div>
+       <div style="position:relative;height:30px;margin-top:6px">${underline(o.ulw || 520, ul, 'var(--sun)')}</div>
+       <div class="hand" style="font-size:66px;margin-top:22px;color:#fff;opacity:${eOut(prog(t, a + 1.0, a + 1.5))}">${o.sub}</div>`);
+}
+
+// бренд угорі (маленький)
+const brand = (t, a, b, top = 262, c = '#fff') => { const v = vis(t, a, b, .5); if (!v) return '';
+  return box(`left:0;right:0;top:${top}px;display:flex;justify-content:center;align-items:center;gap:14px;opacity:${v};color:${c}`,
+    `<div style="width:62px;height:59px">${LOGO(c)}</div><div class="serif" style="font-size:44px">PaperMagic</div>`); };
+
+// фінальна картка
+function endCard(t, a, o){
+  const v = vis(t, a, 99, .6); if (!v) return '';
+  const lt = t - a;
+  let s = box(`left:0;right:0;bottom:0;height:900px;opacity:${v};background:linear-gradient(rgba(25,20,14,0),rgba(25,20,14,.55))`);
+  s += brand(t, a, 99, 262, o.brandC || '#fff');
+  s += box(`left:70px;right:70px;top:${(o.top || 1060) + rise(t, a)}px;opacity:${v};transform:rotate(-1deg)`,
+    `<div class="card" style="position:relative;padding:44px 48px 40px;text-align:center">
+       <div class="tape" style="left:60px;top:-24px;transform:rotate(-6deg)"></div><div class="tape" style="right:60px;top:-24px;transform:rotate(5deg)"></div>
+       <div class="serif" style="font-size:${o.size || 70}px">${o.title}</div>
+       ${o.extra || ''}
+       <div style="font-size:40px;font-weight:700;color:#4a453e;margin-top:22px">${o.text}</div>
+       <div style="margin-top:26px;display:inline-block;background:var(--sage-d);color:#fff;border-radius:999px;padding:18px 40px;font-size:38px;font-weight:800;opacity:${eOut(prog(lt, .6, 1))}">Посилання в профілі ↗</div>
+     </div>`);
+  return s;
+}
+
+/* ---------- ілюстрація «екран» для порівняння (верхня половина) ---------- */
+function screenScene(t, mode){
+  // mode: 'watch' | 'scroll' | 'tired' | 'end'
+  const fl = 0.72 + 0.28 * Math.abs(Math.sin(t * 7.3) * Math.sin(t * 3.1 + 1));      // мерехтіння екрана
+  const glow = mode === 'end' ? 0.12 : fl;
+  const scr = mode === 'end' ? '#1a1d24' : `hsl(${205 + 40 * Math.sin(t * 2.2)},70%,${45 + 20 * fl}%)`;
+  const slump = mode === 'tired' || mode === 'end' ? 1 : 0;
+  return `<svg width="1080" height="960" viewBox="0 0 1080 960" style="position:absolute;left:0;top:0">
+    <defs>
+      <radialGradient id="g" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="rgba(120,170,255,${0.55 * glow})"/><stop offset="1" stop-color="rgba(20,24,40,0)"/></radialGradient>
+      <linearGradient id="room" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#20242f"/><stop offset="1" stop-color="#151820"/></linearGradient>
+    </defs>
+    <rect width="1080" height="960" fill="url(#room)"/>
+    <rect y="700" width="1080" height="260" fill="#1b1e27"/>
+    <rect width="1080" height="960" fill="url(#g)"/>
+    <!-- телевізор -->
+    <rect x="300" y="300" width="480" height="290" rx="18" fill="#0d0f14"/>
+    <rect x="316" y="316" width="448" height="258" rx="8" fill="${scr}"/>
+    ${mode === 'end' ? '' :
+      `<circle cx="${470 + 40 * Math.sin(t * 3)}" cy="${430 + 20 * Math.cos(t * 4)}" r="46" fill="rgba(255,255,255,.35)"/><rect x="${560 + 30 * Math.cos(t * 2.5)}" y="400" width="110" height="80" rx="12" fill="rgba(255,230,120,.4)"/>`}
+    <rect x="510" y="590" width="60" height="40" fill="#0d0f14"/><rect x="420" y="628" width="240" height="14" rx="7" fill="#0d0f14"/>
+    <!-- дитина зі спини, на підлозі -->
+    <g transform="translate(540 ${800 + slump * 14}) rotate(${slump * 8})">
+      <ellipse cx="0" cy="120" rx="190" ry="60" fill="#0f1117"/>
+      <path d="M-150 120 C -150 10, -90 -40, 0 -40 C 90 -40, 150 10, 150 120 Z" fill="#2a3040"/>
+      <circle cx="0" cy="${-110 + slump * 10}" r="82" fill="#2a3040"/>
+      <path d="M-80 ${-130 + slump * 10} C -60 -210, 60 -210, 82 ${-120 + slump * 10}" fill="#232836"/>
+      <path d="M-150 120 C -150 10, -90 -40, 0 -40 C 90 -40, 150 10, 150 120" fill="none" stroke="rgba(150,190,255,${0.35 * glow})" stroke-width="6"/>
+      <circle cx="0" cy="${-110 + slump * 10}" r="82" fill="none" stroke="rgba(150,190,255,${0.4 * glow})" stroke-width="5"/>
+    </g>
+  </svg>`;
+}
+
+const REELS = {
+  /* 1. Чому важливо, щоб дитина малювала */
+  1: { dur: 18, render(t){
+    let s = '';
+    s += hook(t, 0, 3.05, { tag: 'Порада для батьків', title: 'Чому дитині важливо<br>малювати?', sub: '…і це зовсім не про талант', ulw: 560, size: 90 });
+    s += dots(t, 4, 0, 3.0, 6.45) + dots(t, 4, 1, 6.4, 9.85) + dots(t, 4, 2, 9.8, 13.05) + dots(t, 4, 3, 13.0, 15.65);
+    s += point(t, 3.0, 6.45, { tag: '01 · Моторика рук', title: 'Сильні пальці', ulw: 430,
+      text: 'Дитина вчиться тримати олівець і керувати натиском. Ці ж мʼязи потім знадобляться, щоб писати.',
+      note: { txt: 'ось тут — тренування!', x: 470, y: 690, r: -5, arrow: [330, 790, true] } });
+    s += point(t, 6.4, 9.85, { tag: '02 · Уява', title: 'Свої кольори', ulw: 400,
+      text: 'Синя машинка чи райдужна? Дитина сама вирішує — це її перші творчі рішення.',
+      note: { txt: 'обирає сама 💛', x: 120, y: 640, r: -6 } });
+    s += point(t, 9.8, 13.05, { tag: '03 · Увага', title: 'Посидючість', ulw: 400,
+      text: '30–60 хвилин зосередженої роботи без екрана — і без нагадувань.',
+      note: { txt: 'тихо… працюємо 🤫', x: 140, y: 560, r: -4 } });
+    s += point(t, 13.0, 15.65, { tag: '04 · Просторове мислення', title: 'З 2D — у 3D', ulw: 360,
+      text: 'Плоский аркуш перетворюється на обʼємну іграшку: дитина бачить, як це працює.',
+      note: { txt: 'це просто папір! 😮', x: 480, y: 470, r: -4, arrow: [430, 560, true] } });
+    s += endCard(t, 15.6, { title: 'Розвиток через гру', text: '3D-розмальовки PaperMagic · від 89 ₴', top: 1200 });
+    return s; } },
+
+  /* 2. Як розмальовка тренує руки: 3 етапи */
+  2: { dur: 17, render(t){
+    let s = '';
+    s += hook(t, 0, 2.85, { tag: 'Дрібна моторика', title: 'Як одна розмальовка<br>тренує руки дитини', sub: '3 етапи 👇', ulw: 520, size: 86 });
+    s += dots(t, 3, 0, 2.8, 6.65) + dots(t, 3, 1, 6.6, 10.25) + dots(t, 3, 2, 10.2, 13.65);
+    const st = (a, b, n, title, items, ulw) => {
+      const list = items.map((it, i) => `<div class="hand" style="font-size:58px;color:var(--sage-d);margin-top:6px;opacity:${eOut(prog(t, a + .8 + i * .45, a + 1.2 + i * .45))}">✓ ${it}</div>`).join('');
+      return point(t, a, b, { tag: `Етап ${n} / 3`, title, ulw, text: list, top: 1130 }); };
+    s += st(2.8, 6.65, 1, 'Розмалювати', ['сила натиску олівця', 'точність: не за лінію'], 440);
+    s += st(6.6, 10.25, 2, 'Вирізати', ['координація обох рук', 'плавний контроль руху'], 360);
+    s += st(10.2, 13.65, 3, 'Скласти й склеїти', ['дрібні рухи пальців', 'терпіння до результату'], 560);
+    // вікова підказка + CTA
+    const v = vis(t, 13.6, 99, .6);
+    if (v){
+      const rows = [['3–4 роки', 'розмальовує, мама допомагає'], ['5–6 років', 'вирізає разом з дорослим'], ['7+ років', 'збирає фігурку сам']];
+      s += box(`left:0;right:0;top:0;height:900px;opacity:${v};background:linear-gradient(rgba(25,20,14,.55),rgba(25,20,14,0))`);
+      s += brand(t, 13.6, 99, 262);
+      s += box(`left:70px;right:70px;top:${1120 + rise(t, 13.6)}px;opacity:${v};transform:rotate(-1deg)`,
+        `<div class="card" style="position:relative;padding:40px 46px 36px">
+           <div class="tape" style="left:50%;top:-24px;transform:translateX(-50%) rotate(3deg)"></div>
+           <div class="tag" style="font-size:26px;color:var(--sage-d);margin-bottom:18px">Підказка за віком</div>
+           ${rows.map((r, i) => `<div style="display:flex;gap:24px;align-items:baseline;margin:12px 0;opacity:${eOut(prog(t, 13.9 + i * .25, 14.3 + i * .25))}"><div class="serif" style="font-size:46px;min-width:230px">${r[0]}</div><div style="font-size:36px;font-weight:700;color:#4a453e">${r[1]}</div></div>`).join('')}
+           <div style="margin-top:24px;display:flex;justify-content:space-between;align-items:center;opacity:${eOut(prog(t, 14.7, 15.1))}">
+             <div style="font-size:36px;font-weight:800">PaperMagic · від 89 ₴</div>
+             <div style="background:var(--sage-d);color:#fff;border-radius:999px;padding:14px 30px;font-size:32px;font-weight:800">Посилання в профілі ↗</div></div>
+         </div>`);
+    }
+    return s; } },
+
+  /* 3. Порівняння: екран vs розмальовка */
+  3: { dur: 19, render(t){
+    let s = '';
+    const top = t < 11.6 ? (t < 5.6 ? 'watch' : t < 8.6 ? 'scroll' : 'tired') : 'end';
+    s += box('left:0;top:0;width:1080px;height:960px;overflow:hidden', screenScene(t, top));
+    // роздільник
+    s += box('left:0;top:952px;width:1080px;height:16px;background:var(--paper)');
+    // мітки половин
+    const lab = (txt, y, bg, fg, a, b) => { const v = vis(t, a, b, .4); return v ? box(`left:70px;top:${y + rise(t, a, .4, 20)}px;opacity:${v}`,
+      `<span style="display:inline-block;background:${bg};color:${fg};border-radius:18px;padding:14px 28px;font-size:44px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.25)">${txt}</span>`) : ''; };
+    const note = (txt, x, y, c, a, b, r = -4) => { const v = vis(t, a, b, .4); return v ? box(`left:${x}px;top:${y}px;opacity:${v};transform:rotate(${r}deg)`,
+      `<div class="hand" style="font-size:64px;color:${c};text-shadow:0 2px 12px rgba(0,0,0,.5);white-space:nowrap">${txt}</div>`) : ''; };
+    s += lab('📺 Година з екраном', 270, 'rgba(255,255,255,.14)', '#dfe6f3', 0, 11.65);
+    s += lab('✏️ Година з розмальовкою', 990, 'var(--paper)', 'var(--ink)', 0, 11.65);
+    // хук по центру
+    const hv = vis(t, 0, 2.65, .5);
+    if (hv) s += box(`left:70px;right:70px;top:${700 + rise(t, 0, .6, 30)}px;opacity:${hv};text-align:center`,
+      `<div class="card" style="position:relative;display:inline-block;padding:26px 44px;transform:rotate(-1.5deg)"><div class="tape" style="left:50%;top:-24px;transform:translateX(-50%) rotate(-3deg)"></div>
+       <div class="serif" style="font-size:66px">Одна година — <span class="it" style="color:var(--terra)">два</span> результати</div></div>`);
+    s += note('дивиться…', 700, 640, '#cfd8ea', 2.6, 5.65) + note('створює ✨', 600, 1180, '#fff', 2.6, 5.65, -6);
+    s += note('гортає далі…', 660, 640, '#cfd8ea', 5.6, 8.65) + note('вирізає ✂️', 620, 1180, '#fff', 5.6, 8.65, -6);
+    s += note('вже втомився', 660, 640, '#cfd8ea', 8.6, 11.65) + note('збирає сам 🙌', 560, 1180, '#fff', 8.6, 11.65, -6);
+    // результат
+    const rv = vis(t, 11.6, 15.65, .5);
+    if (rv){
+      s += box(`left:0;right:0;top:${430 + rise(t, 11.6, .5, 20)}px;text-align:center;opacity:${rv}`,
+        `<div class="tag" style="font-size:28px;color:#9aa3b5">Результат</div><div class="serif" style="font-size:120px;color:#cfd6e4">0</div><div class="hand" style="font-size:60px;color:#9aa3b5">іграшок 🤷</div>`);
+      s += box(`left:0;right:0;top:${1010 + rise(t, 11.9, .5, 20)}px;text-align:center;opacity:${vis(t, 11.9, 15.65, .5)}`,
+        `<div class="card" style="position:relative;display:inline-block;padding:18px 38px"><span class="tag" style="font-size:26px;color:var(--sage-d)">Результат&nbsp;&nbsp;</span><span class="serif" style="font-size:64px">2 нові іграшки</span></div>`);
+      s += note('зроблено своїми руками', 230, 1490, '#fff', 12.6, 15.65, -3);
+    }
+    // фінал
+    const ev = vis(t, 15.6, 99, .6);
+    if (ev){
+      s += box(`inset:0;background:var(--paper);opacity:${ev * .97}`);
+      s += box(`left:0;right:0;top:262px;display:flex;justify-content:center;align-items:center;gap:14px;opacity:${ev}`,
+        `<div style="width:62px;height:59px">${LOGO('#2b2a28')}</div><div class="serif" style="font-size:44px">PaperMagic</div>`);
+      s += box(`left:80px;right:80px;top:${520 + rise(t, 15.6, .6, 30)}px;text-align:center;opacity:${ev}`,
+        `<div class="serif" style="font-size:88px">Обирайте годину,<br>після якої<br><span class="it" style="color:var(--terra)">щось залишиться</span></div>
+         <div style="margin:26px auto 0;width:560px">${underline(560, eInOut(prog(t, 16.2, 16.9)), 'var(--sun)')}</div>
+         <div style="font-size:42px;font-weight:700;color:#4a453e;margin-top:40px">3D-розмальовки · від 89 ₴<br>роздрукуй → розмалюй → склей</div>
+         <div style="margin-top:44px;display:inline-block;background:var(--sage-d);color:#fff;border-radius:999px;padding:20px 44px;font-size:40px;font-weight:800;opacity:${eOut(prog(t, 16.4, 16.9))}">Посилання в профілі ↗</div>`);
+    }
+    return s; } },
+};
+
+const stage = document.getElementById('stage');
+window.renderFrame = (n, t) => { stage.innerHTML = REELS[n].render(t); };
+window.REEL_DUR = n => REELS[n].dur;
+</script>
+</body>
+</html>

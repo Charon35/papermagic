@@ -2,6 +2,7 @@
 Усе синтезовано тут (інструменти з ads/src/music.py), без чужих семплів і прав.
 python3 -I sound.py N OUT.wav      (N: 1, 2 або 4; таймінги збігаються з reels.html)"""
 import os, sys, wave
+sys.dont_write_bytecode = True  # не залишати __pycache__ в ads/src
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(HERE))), 'ads', 'src'))

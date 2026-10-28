@@ -11,3 +11,4 @@ brand/_*
 .claude/
 .DS_Store
 ads/preview/
+__pycache__/

@@ -271,6 +271,7 @@ def village():
     return sheet("Мінінабір «Українське село»", s, pv, 3)
 
 
-for name, fn in [('sketch-1-house', house), ('sketch-2-car', car), ('sketch-3-village', village)]:
-    (OUT / f'{name}.svg').write_text(fn())
-    print('ok', name)
+if __name__ == '__main__':
+    for name, fn in [('sketch-1-house', house), ('sketch-2-car', car), ('sketch-3-village', village)]:
+        (OUT / f'{name}.svg').write_text(fn())
+        print('ok', name)

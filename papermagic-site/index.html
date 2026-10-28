@@ -884,6 +884,7 @@ document.getElementById('packGrid').innerHTML = PACKS.map(k=>`<article class="pa
 // Лише справжні відгуки покупців (з їхнього дозволу). photo — файл у img/reviews/, можна залишити порожнім.
 // {name:'Олена', city:'Київ', stars:5, text:'…', photo:'img/reviews/olena.jpg', product:'Поліцейське авто'}
 const REVIEWS = [
+  {name:'Оксана', stars:5, text:'Вирізали машинки, всі чудово склеїлись, якість малюнку класна, дякуємо!', photo:'img/reviews/oksana.jpg', product:'Гоночна «Блискавка 95»'},
   {name:'Анна', stars:5, text:'Розмальовували всією сімʼєю, варіант як провести класно час з дитиною — супер.'},
 ];
 const reviewsWord = n => n%10===1 && n%100!==11 ? 'відгук' : [2,3,4].includes(n%10) && ![12,13,14].includes(n%100) ? 'відгуки' : 'відгуків';

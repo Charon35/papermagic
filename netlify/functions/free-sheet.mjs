@@ -26,7 +26,7 @@ export default async (req) => {
       <p>Дякуємо, що завітали до PaperMagic! У вкладенні — PDF гоночної машинки «Блискавка 95».</p>
       <p>Роздрукуйте на А4 → розмалюйте → виріжте → склейте 3D-фігурку. Друкувати можна скільки завгодно для своєї родини.</p>
       <p><a href="${pdf}" style="display:inline-block;background:#6a4cf0;color:#fff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:999px">Завантажити PDF</a></p>
-      <p>Сподобалось? Ще 7 фігурок і вигідні набори чекають на сайті: <a href="${site}">${site.replace('https://', '')}</a></p>
+      <p>Сподобалось? Ще 12 фігурок і вигідні набори чекають на сайті: <a href="${site}">${site.replace('https://', '')}</a></p>
       <p style="color:#6b6580;font-size:14px">PaperMagic · Instagram @papermagic_ua</p>
     </div>`;
 

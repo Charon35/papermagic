@@ -1,0 +1,11 @@
+:root{--violet:#6a4cf0;--violet-l:#efe9ff;--sun:#ffc93c;--ink:#2a2440;--cream:#fffaf3;--coral:#ff6b5b;--mint:#5fd3b5;--muted:#6b6580}
+*{box-sizing:border-box}
+html,body{margin:0;overflow:hidden;background:var(--cream)}
+body{font-family:Nunito,sans-serif;color:var(--ink);width:1080px;height:1920px;position:relative}
+.abs{position:absolute}
+.fig svg{width:100%;height:100%;display:block;overflow:visible}
+.h{font-weight:900;line-height:1.04;letter-spacing:-.015em;text-align:center;left:60px;right:60px}
+.hl{background:linear-gradient(transparent 60%,var(--sun) 60%);padding:0 12px}
+.pill{display:inline-block;border-radius:999px;font-weight:900;white-space:nowrap}
+.card{background:#fff;border-radius:40px;box-shadow:0 30px 70px rgba(42,36,64,.16)}
+img{display:block}

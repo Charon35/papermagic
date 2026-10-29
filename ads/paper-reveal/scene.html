@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic — реклама «Перша секунда — готова фігурка»</title>
+<link rel="stylesheet" href="../../instagram/src/fonts.css">
+<link rel="stylesheet" href="../tools/kit.css">
+<style>
+.row{display:flex;align-items:center;height:210px;padding:0 40px 0 10px}
+.row .figs{position:relative;width:440px;height:210px;flex:none}
+.row .name{flex:1;font-weight:900;font-size:40px;line-height:1.1}
+.row .name small{display:block;font-size:30px;font-weight:800;color:var(--muted);margin-top:6px}
+.row .price{font-weight:900;font-size:66px;color:var(--violet);white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../../instagram/src/figs.js"></script>
+<script src="../tools/kit.js"></script>
+<script>
+// Хук без вступу: з кадру 0 — велика кольорова акула. Потім плаский аркуш, далі набори від 299 ₴.
+// Ціни наборів — як у PACKS/BUNDLE на сайті. Тривалість 12 с; тексти в межах y 250–1570.
+const bob = (a = 1) => Math.sin(T * 3.2) * 14 * a;
+const PACKS = [
+  ['Набір «Миколай і Новий рік»', '4 фігурки', 299, ['truck', 'cupcake', 'dog']],
+  ['Набір «Супергерої»', '5 фігурок', 350, ['blyskavka', 'zirka', 'sonyashnyk']],
+  ['Набір «Машинки»', '5 фігурок', 385, ['police', 'bus', 'hippie']],
+  ['Набір на свята', '8 фігурок', 449, ['racer', 'shark', 'cupcake']],
+];
+
+let html = '';
+
+// 1. Хук (0–2.8 с): готова фігурка на весь екран
+// 2. Реверс (2.8–6.4 с): фігурка відʼїжджає в кут, з'являється плаский аркуш
+{
+  const o = vis0(6.4, .35);
+  if (o > 0) {
+    const k = ease((T - 2.8) / .6);                       // 0 — велика по центру, 1 — маленька в куті
+    const w = 1000 - 540 * k, x = 40 + 560 * k, y = 640 + 400 * k + bob(1 - k);
+    if (T < 3.1) html += `<div class="abs h" style="top:390px;font-size:104px;opacity:${1 - fade(2.7, 3.1)}">Вгадай, з чого<br><span class="hl">ця акула?</span> 👀</div>`;
+    if (T > 2.8) {
+      const s = ease((T - 2.9) / .55);
+      html += `<div class="abs card" style="left:${110 + (1 - s) * -700}px;top:620px;width:640px;padding:18px;border-radius:30px;opacity:${o};transform:rotate(${-5 + 2 * s}deg)"><img src="${sheet('shark')}" style="width:100%;height:760px;object-fit:cover;object-position:top;border-radius:16px"></div>`;
+      html += `<div class="abs h" style="top:370px;font-size:96px;opacity:${o * fade(3.2, 3.5)}">Це був <span class="hl">папір</span><br>10 хвилин тому</div>`;
+      html += `<div class="abs" style="left:0;right:0;top:1470px;text-align:center;opacity:${o * fade(4.4, 4.8)}"><span class="pill" style="background:var(--violet);color:#fff;font-size:42px;padding:18px 34px">роздрукуй → розмалюй → виріж → склей</span></div>`;
+    }
+    html += fig('shark', x, y, w, 1, o, `transform:rotate(${(1 - k) * Math.sin(T * 2) * 3}deg);filter:drop-shadow(0 30px 34px rgba(42,36,64,.22))`);
+    if (T < 2.9) html += `<div class="abs" style="left:0;right:0;top:1460px;text-align:center;opacity:${fade(.4, .8) * (1 - fade(2.6, 2.9))}"><span class="pill" style="background:var(--ink);color:#fff;font-size:48px;padding:20px 44px">3D-фігурка своїми руками ✂️</span></div>`;
+  }
+}
+
+// 3. Набори з цінами (6.4–9.2 с)
+{
+  const o = vis(6.4, 9.2);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:370px;font-size:86px;opacity:${o}">Обери <span class="hl">свій набір</span></div>`;
+    PACKS.forEach(([name, n, price, ids], i) => {
+      const s = ease((T - 6.5 - i * .14) / .4);
+      html += `<div class="abs card" style="left:${40 + (1 - s) * 120}px;top:${520 + i * 245}px;width:1000px;opacity:${o * s}"><div class="row">
+        <div class="figs">${ids.map((id, j) => fig(id, 10 + j * 135, 45, 165)).join('')}</div>
+        <div class="name">${name.replace('«Миколай і Новий рік»', '«Миколай<br>і Новий рік»')}<small>${n}</small></div><div class="price">${price} ₴</div></div></div>`;
+    });
+  }
+}
+
+// 4. Ціна й заклик (9.2–12 с)
+{
+  const o = fade(9.2, 9.6);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:370px;font-size:96px;opacity:${o}">3D-розмальовки</div>`;
+    const p = pop((T - 9.4) / .5);
+    html += `<div class="abs h" style="top:490px;font-size:150px;opacity:${o};transform:scale(${p || 0.001})">набори<br>від <span style="color:var(--violet)">299 ₴</span></div>`;
+    [['cupcake', -20, 870], ['shark', 330, 820], ['blyskavka', 700, 850]].forEach(([id, x, y], i) =>
+      html += fig(id, x, y + bob(.6), 400, pop((T - 9.6 - i * .1) / .45), o));
+    html += `<div class="abs h" style="top:1240px;font-size:46px;font-weight:800;opacity:${fade(10, 10.4)}">PDF одразу на e-mail<br>друкуй скільки завгодно 🖨</div>`;
+    html += `<div class="abs" style="left:0;right:0;top:1420px;text-align:center;opacity:${fade(10.3, 10.7)}"><span class="pill" style="background:var(--ink);color:#fff;font-size:50px;padding:24px 50px">Замовляй на сайті 👇</span></div>`;
+  }
+}
+
+html += logo();
+document.getElementById('stage').innerHTML = html;
+</script>
+</body>
+</html>

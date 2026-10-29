@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic — реклама для садочків і вихователів</title>
+<link rel="stylesheet" href="../../instagram/src/fonts.css">
+<link rel="stylesheet" href="../tools/kit.css">
+<style>
+.pdf{background:#fff;border:6px solid var(--ink);border-radius:26px;box-shadow:0 26px 60px rgba(42,36,64,.18)}
+.tick{font-size:40px;font-weight:800;line-height:1.25;text-align:left}
+.tick b{color:var(--violet)}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../../instagram/src/figs.js"></script>
+<script src="../tools/kit.js"></script>
+<script>
+// Набір на свята — 8 фігурок, 449 ₴ (на сайті без набору 772 ₴) і доступ для вихователів 799 ₴ назавжди.
+// Тривалість 13 с; тексти в межах y 250–1570.
+const SET = ['police', 'racer', 'shark', 'cupcake', 'hippie', 'bus', 'truck', 'dog'];
+const ALL = [...SET, 'blyskavka', 'zirka', 'sonyashnyk', 'khvylia', 'misiachna'];
+const pdfIcon = (x, y, w, o, s = 1) => `<div class="abs pdf" style="left:${x}px;top:${y}px;width:${w}px;height:${w * 1.25}px;opacity:${o};transform:scale(${s})">
+  <div style="position:absolute;left:12%;right:12%;top:14%;height:8%;background:#e6e1f5;border-radius:8px"></div>
+  <div style="position:absolute;left:12%;right:30%;top:28%;height:8%;background:#e6e1f5;border-radius:8px"></div>
+  <div style="position:absolute;left:12%;right:12%;bottom:12%;text-align:center;background:var(--coral);color:#fff;border-radius:14px;font-weight:900;font-size:${w * .24}px;line-height:1.3">PDF</div></div>`;
+
+let html = '';
+
+// 1. Хук (0–3.2 с): з одного PDF вилітають фігурки
+{
+  const o = vis0(3.2, .3);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:370px;font-size:110px;opacity:${o}"><span class="hl">Один PDF</span> —</div>`;
+    html += `<div class="abs h" style="top:500px;font-size:76px;opacity:${o}">фігурки для<br>всієї групи 🧒👧</div>`;
+    html += pdfIcon(400, 700, 280, o);
+    SET.forEach((id, i) => {
+      const k = ease((T + .9 - i * .17) / .55);
+      const [tx, ty] = [20 + (i % 4) * 262, 1060 + Math.floor(i / 4) * 230];
+      const x = 415 + (tx - 415) * k, y = 760 + (ty - 760) * k;
+      html += fig(id, x, y, 250, .3 + .7 * k, o * clamp(k * 3));
+    });
+  }
+}
+
+// 2. Друкуй для кожної дитини (3.2–6.6 с): аркуші розкладаються віялом, лічильник росте
+{
+  const o = vis(3.2, 6.6);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:370px;font-size:86px;opacity:${o}">Друкуй для<br><span class="hl">кожної дитини</span> 🖨</div>`;
+    for (let i = 0; i < 6; i++) {
+      const k = ease((T - 3.3 - i * .18) / .45);
+      const r = (i - 2.5) * 5 * k, x = 320 + (i - 2.5) * 56 * k;
+      html += `<div class="abs card" style="left:${x}px;top:${640 + Math.abs(i - 2.5) * 14 * k}px;width:440px;padding:14px;border-radius:24px;opacity:${o * clamp(k * 4)};transform:rotate(${r}deg);transform-origin:50% 120%"><img src="${sheet(SET[[5, 3, 0, 7, 2, 4][i]])}" style="width:100%;border-radius:12px"></div>`;
+    }
+    const n = Math.round(1 + 24 * ease((T - 3.6) / 2));
+    html += `<div class="abs" style="left:0;right:0;top:1270px;text-align:center;opacity:${o * fade(3.6, 3.9)}"><span class="pill" style="background:var(--violet);color:#fff;font-size:72px;padding:18px 54px">${n} ${n % 10 === 1 && n !== 11 ? 'аркуш' : n % 10 >= 2 && n % 10 <= 4 && (n < 12 || n > 14) ? 'аркуші' : 'аркушів'}</span></div>`;
+    html += `<div class="abs h" style="top:1420px;font-size:48px;font-weight:800;opacity:${o * fade(4.6, 5)}">кожна дитина збирає свою фігурку</div>`;
+  }
+}
+
+// 3. Набір на свята — 449 ₴ (6.6–9.6 с)
+{
+  const o = vis(6.6, 9.6);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:370px;font-size:84px;opacity:${o}">Набір на свята</div>`;
+    html += `<div class="abs h" style="top:470px;font-size:50px;font-weight:800;opacity:${o}">для ранку в садочку чи свята в класі</div>`;
+    SET.forEach((id, i) => html += `<div class="abs card" style="left:${50 + (i % 4) * 250}px;top:${580 + Math.floor(i / 4) * 230}px;width:230px;height:210px;border-radius:28px;background:${BG[id]};opacity:${o * ease((T - 6.7 - i * .07) / .35)}">${fig(id, 0, 10, 230)}</div>`);
+    const p = pop((T - 7.4) / .5);
+    html += `<div class="abs card" style="left:140px;top:1080px;width:800px;padding:34px 40px 40px;text-align:center;opacity:${o};transform:scale(${p || 0.001})">
+      <div style="font-size:52px;font-weight:800;color:var(--muted)">8 фігурок · <s>772 ₴</s></div>
+      <div style="font-size:170px;font-weight:900;line-height:1.05;color:var(--violet)">449 ₴</div>
+      <span class="pill" style="background:var(--coral);color:#fff;font-size:42px;padding:14px 32px">друкуй для всієї групи</span></div>`;
+  }
+}
+
+// 4. Доступ для вихователів — 799 ₴ назавжди (9.6–13 с)
+{
+  const o = fade(9.6, 10);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:370px;font-size:76px;opacity:${o}">Вихователям<br>і вчителям 🍎</div>`;
+    ALL.forEach((id, i) => {
+      const row = i < 7 ? 0 : 1, col = row ? i - 7 : i;
+      html += fig(id, (row ? 20 : 0) + col * (row ? 172 : 152), 530 + row * 110, row ? 180 : 160, pop((T - 9.7 - i * .05) / .4), o);
+    });
+    const p = pop((T - 10.1) / .5);
+    html += `<div class="abs card" style="left:110px;top:800px;width:860px;padding:28px 56px 34px;text-align:center;opacity:${o};transform:scale(${p || 0.001})">
+      <div style="font-size:46px;font-weight:800;color:var(--muted)">доступ до всіх фігурок</div>
+      <div style="font-size:150px;font-weight:900;line-height:1.05;color:var(--violet)">799 ₴</div>
+      <span class="pill" style="background:var(--sun);font-size:44px;padding:12px 34px">назавжди · одна оплата</span>
+      <div class="tick" style="margin-top:22px">✓ Усі <b>13 фігурок</b> і всі новинки<br>✓ Друк для всіх ваших груп<br>✓ Без підписки</div></div>`;
+    html += `<div class="abs h" style="top:1385px;font-size:42px;font-weight:800;opacity:${fade(10.6, 11)}">або <span class="hl">Набір на свята — 449 ₴</span></div>`;
+    html += `<div class="abs" style="left:0;right:0;top:1458px;text-align:center;opacity:${fade(10.9, 11.3)}"><span class="pill" style="background:var(--ink);color:#fff;font-size:50px;padding:22px 50px">Обирай на сайті 👇</span></div>`;
+  }
+}
+
+html += logo();
+document.getElementById('stage').innerHTML = html;
+</script>
+</body>
+</html>

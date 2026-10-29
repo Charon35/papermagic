@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic — реклама набору «Супергерої»</title>
+<link rel="stylesheet" href="../../instagram/src/fonts.css">
+<style>
+:root{--violet:#6a4cf0;--violet-l:#efe9ff;--sun:#ffc93c;--ink:#2a2440;--cream:#fffaf3;--coral:#ff6b5b;--mint:#5fd3b5;--muted:#6b6580}
+*{box-sizing:border-box}
+html,body{margin:0;overflow:hidden;background:var(--cream)}
+body{font-family:Nunito,sans-serif;color:var(--ink);width:1080px;height:1920px;position:relative}
+.abs{position:absolute}
+.h{font-weight:900;line-height:1.04;letter-spacing:-.015em;text-align:center;left:60px;right:60px}
+.hl{background:linear-gradient(transparent 60%,var(--sun) 60%);padding:0 12px}
+.pill{display:inline-block;border-radius:999px;font-weight:900;white-space:nowrap}
+.card{background:#fff;border-radius:40px;box-shadow:0 30px 70px rgba(42,36,64,.16)}
+img{display:block}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// Кадр за часом: scene.html?t=СЕКУНДИ. Тривалість 12 с; тексти в межах y 250–1570 (безпечна зона Reels).
+const T = +(new URLSearchParams(location.search).get('t') || 0);
+const HEROES = [
+  ['kapitan-blyskavka', 'Капітан Блискавка', '#e6efff'],
+  ['divchynka-zirka', 'Дівчинка-Зірка', '#f3e9ff'],
+  ['super-sonyashnyk', 'Супер-Соняшник', '#fff6d6'],
+  ['kapitan-khvylia', 'Капітан Хвиля', '#e0f5f8'],
+  ['misiachna-tin', 'Місячна Тінь', '#ebeaf7'],
+];
+const IMG = '../../papermagic-site/img/';
+const LOGO = `<svg viewBox="0 0 900 860" width="100%" height="100%"><g fill="none" stroke="#2a2440" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"><path d="M195 165 L248 525 M195 165 L560 528"/><path d="M25 428 L330 578 M25 428 L305 738 L440 708"/><path d="M290 615 L445 465 L655 628 L650 838 L290 615 Z M290 615 L305 738"/><path d="M445 465 Q470 600 515 640 Q590 740 645 828" stroke-width="12"/><path d="M560 545 L712 290 L772 292 L655 628 M772 292 L860 405 L752 362"/></g></svg>`;
+
+const clamp = v => Math.max(0, Math.min(1, v));
+const ease = v => 1 - Math.pow(1 - clamp(v), 3);
+const pop = v => { v = clamp(v); return v === 0 ? 0 : 1 + 0.12 * Math.sin(v * Math.PI) * (1 - v) + (ease(v) - 1); };
+const fade = (a, b) => clamp((T - a) / (b - a));
+const vis = (a, b, f = .35) => Math.min(fade(a, a + f), 1 - fade(b - f, b));   // видимість сцени [a, b]
+
+function fig(slug, x, y, w, s = 1, o = 1, extra = '') {
+  return `<img class="abs" src="${IMG}hero-${slug}.svg" style="left:${x}px;top:${y}px;width:${w}px;transform:scale(${s});transform-origin:50% 90%;opacity:${o};${extra}">`;
+}
+
+let html = '';
+
+// 1. Хук (0–3 с): «5 супергероїв» і команда вискакує по одному
+{
+  const o = vis(0, 3.1, .3);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:300px;font-size:120px;opacity:${o};transform:translateY(${(1 - ease(T / .5)) * 40}px)"><span class="hl">5 супергероїв</span></div>`;
+    html += `<div class="abs h" style="top:450px;font-size:64px;font-weight:800;opacity:${o * fade(.4, .8)}">з паперу, які дитина<br>збере сама ✂️</div>`;
+    HEROES.forEach(([slug], i) => {
+      const s = pop((T - .5 - i * .25) / .45);
+      const [x, y] = [[-40, 640], [400, 640], [180, 1000], [-40, 1180], [560, 1050]][i];
+      html += fig(slug, x, y, 560, s, o);
+    });
+  }
+}
+
+// 2. Аркуш → фігурка (3–7.4 с)
+{
+  const o = vis(3, 7.4);
+  if (o > 0) {
+    const [slug, name] = HEROES[2];
+    const k = ease((T - 3) / .6);
+    html += `<div class="abs h" style="top:280px;font-size:84px;opacity:${o}">Роздрукуй → розмалюй →<br><span class="hl">склей</span></div>`;
+    html += `<div class="abs card" style="left:${70 + (1 - k) * 80}px;top:560px;width:940px;padding:22px;opacity:${o};transform:rotate(${-2 + k}deg)"><img src="${IMG}sheet-hero-${slug}.jpg" style="width:100%;border-radius:18px"></div>`;
+    const g = pop((T - 4.6) / .6);
+    html += fig(slug, 600, 900, 430, g, o, 'filter:drop-shadow(0 24px 30px rgba(42,36,64,.25))');
+    const a = fade(5.2, 5.6) * o;
+    html += `<div class="abs" style="left:110px;top:1300px;opacity:${a}"><span class="pill" style="background:var(--violet);color:#fff;font-size:46px;padding:20px 36px">${name} · 8 см</span></div>`;
+    html += `<div class="abs" style="left:110px;top:1410px;opacity:${fade(5.8, 6.2) * o}"><span class="pill" style="background:#fff;font-size:40px;padding:18px 32px;box-shadow:0 10px 30px rgba(42,36,64,.12)">⏱ 30–40 хв творчості без екрана</span></div>`;
+  }
+}
+
+// 3. Уся команда з іменами (7.4–9.6 с)
+{
+  const o = vis(7.4, 9.6);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:290px;font-size:88px;opacity:${o}">Збери всю <span class="hl">команду</span></div>`;
+    const pos = [[60, 450], [560, 450], [60, 810], [560, 810], [310, 1170]];
+    HEROES.forEach(([slug, name, bg], i) => {
+      const s = ease((T - 7.5 - i * .12) / .4);
+      const [x, y] = pos[i];
+      html += `<div class="abs card" style="left:${x}px;top:${y}px;width:460px;height:330px;background:${bg};opacity:${o * s};transform:scale(${.9 + .1 * s})">
+        <img src="${IMG}hero-${slug}.svg" style="position:absolute;left:40px;top:0;height:270px">
+        <div style="position:absolute;left:0;right:0;bottom:20px;text-align:center;font-weight:900;font-size:36px">${name}</div></div>`;
+    });
+  }
+}
+
+// 4. Ціна й заклик (9.6–12 с)
+{
+  const o = fade(9.6, 10);
+  if (o > 0) {
+    html += `<div class="abs h" style="top:300px;font-size:76px;opacity:${o}">Набір «Супергерої»</div>`;
+    HEROES.forEach(([slug], i) => html += fig(slug, -60 + i * 190, 400, 360, pop((T - 9.7 - i * .08) / .4), o));
+    const p = pop((T - 10.1) / .5);
+    html += `<div class="abs card" style="left:140px;top:760px;width:800px;padding:46px 40px;text-align:center;opacity:${o};transform:scale(${p || 0.001})">
+      <div style="font-size:56px;font-weight:800;color:var(--muted)">5 фігурок · <s>445 ₴</s></div>
+      <div style="font-size:190px;font-weight:900;line-height:1.05;color:var(--violet)">350 ₴</div>
+      <span class="pill" style="background:var(--coral);color:#fff;font-size:44px;padding:14px 32px">вигода 95 ₴</span></div>`;
+    html += `<div class="abs h" style="top:1270px;font-size:46px;font-weight:800;opacity:${fade(10.5, 10.9)}">PDF одразу на e-mail<br>друкуй скільки завгодно 🖨</div>`;
+    html += `<div class="abs" style="left:0;right:0;top:1440px;text-align:center;opacity:${fade(10.8, 11.2)}"><span class="pill" style="background:var(--ink);color:#fff;font-size:50px;padding:24px 50px">Замовляй на сайті 👇</span></div>`;
+  }
+}
+
+// логотип і назва — увесь час угорі
+html += `<div class="abs" style="left:60px;top:150px;width:96px;height:92px">${LOGO}</div><div class="abs" style="left:170px;top:172px;font-weight:900;font-size:50px">PaperMagic</div>`;
+document.getElementById('stage').innerHTML = html;
+</script>
+</body>
+</html>

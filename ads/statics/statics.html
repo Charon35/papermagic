@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic — статичні креативи</title>
+<link rel="stylesheet" href="../../instagram/src/fonts.css">
+<style>
+:root{--violet:#6a4cf0;--violet-l:#efe9ff;--sun:#ffc93c;--ink:#2a2440;--cream:#fffaf3;--coral:#ff6b5b;--mint:#5fd3b5;--muted:#6b6580}
+*{box-sizing:border-box}
+html,body{margin:0;overflow:hidden}
+body{font-family:Nunito,sans-serif;color:var(--ink);width:1080px;height:1350px;position:relative;background:var(--cream)}
+.abs{position:absolute}
+.h{font-weight:900;line-height:1.04;letter-spacing:-.015em}
+.hl{background:linear-gradient(transparent 60%,var(--sun) 60%);padding:0 12px}
+.pill{display:inline-block;border-radius:999px;font-weight:900;white-space:nowrap}
+.card{background:#fff;border-radius:40px;box-shadow:0 30px 70px rgba(42,36,64,.16)}
+.fig svg{width:100%;height:auto;display:block;overflow:visible}
+img{display:block}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../../instagram/src/figs.js"></script>
+<script>
+// statics.html?v=1|2|3 — рекламні банери 1080×1350 (4:5, стрічка Instagram і Facebook)
+const V = +(new URLSearchParams(location.search).get('v') || 1);
+const IMG = '../../papermagic-site/img/';
+const LOGO = `<svg viewBox="0 0 900 860" width="100%" height="100%"><g fill="none" stroke="#2a2440" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"><path d="M195 165 L248 525 M195 165 L560 528"/><path d="M25 428 L330 578 M25 428 L305 738 L440 708"/><path d="M290 615 L445 465 L655 628 L650 838 L290 615 Z M290 615 L305 738"/><path d="M445 465 Q470 600 515 640 Q590 740 645 828" stroke-width="12"/><path d="M560 545 L712 290 L772 292 L655 628 M772 292 L860 405 L752 362"/></g></svg>`;
+const brand = (top = 56) => `<div class="abs" style="left:60px;top:${top}px;width:84px;height:80px">${LOGO}</div><div class="abs h" style="left:156px;top:${top + 16}px;font-size:44px">PaperMagic</div>`;
+const hero = (slug, x, y, w) => `<img class="abs" src="${IMG}hero-${slug}.svg" style="left:${x}px;top:${y}px;width:${w}px">`;
+const HEROES = ['kapitan-blyskavka', 'divchynka-zirka', 'super-sonyashnyk', 'kapitan-khvylia', 'misiachna-tin'];
+
+const VARIANTS = {
+  // 1. Набір «Супергерої»: команда + ціна
+  1: () => `${brand()}
+    <div class="abs h" style="left:60px;right:60px;top:170px;font-size:96px;text-align:center"><span class="hl">5 супергероїв</span><br>з паперу</div>
+    <div class="abs" style="left:60px;right:60px;top:400px;height:470px;border-radius:44px;background:var(--violet-l)"></div>
+    ${hero(HEROES[0], -10, 400, 470)}${hero(HEROES[1], 290, 360, 470)}${hero(HEROES[4], 600, 400, 470)}
+    ${hero(HEROES[2], 120, 560, 440)}${hero(HEROES[3], 460, 560, 440)}
+    <div class="abs card" style="left:60px;right:60px;top:950px;height:330px;padding:36px 50px">
+      <div class="h" style="font-size:52px">Набір «Супергерої»</div>
+      <div style="font-size:38px;font-weight:700;color:var(--muted);margin-top:10px">PDF одразу на e-mail · друкуй скільки завгодно</div>
+      <div style="display:flex;align-items:center;gap:24px;margin-top:26px">
+        <span class="h" style="font-size:110px;color:var(--violet)">350 ₴</span>
+        <span style="font-size:52px;font-weight:800;color:var(--muted)"><s>445 ₴</s></span>
+        <span class="pill" style="background:var(--coral);color:#fff;font-size:38px;padding:12px 28px;margin-left:auto">−95 ₴</span>
+      </div></div>`,
+
+  // 2. Аркуш → 3D-фігурка: як це працює
+  2: () => `${brand()}
+    <div class="abs h" style="left:60px;right:60px;top:170px;font-size:84px">Це був <span class="hl">аркуш паперу</span><br>10 хвилин тому</div>
+    <div class="abs card" style="left:60px;top:420px;width:640px;padding:18px;transform:rotate(-3deg)"><img src="${IMG}sheet-hero-kapitan-blyskavka.jpg" style="width:100%;border-radius:16px"></div>
+    <div class="abs" style="left:660px;top:520px;font-size:110px;font-weight:900;color:var(--violet)">→</div>
+    ${hero(HEROES[0], 520, 560, 640)}
+    <div class="abs" style="left:60px;right:60px;top:1060px;display:flex;gap:16px;flex-wrap:wrap">
+      ${['🖨 Роздрукуй', '🖍 Розмалюй', '✂️ Виріж і склей'].map(s => `<span class="pill" style="background:#fff;font-size:40px;padding:18px 30px;box-shadow:0 10px 30px rgba(42,36,64,.12)">${s}</span>`).join('')}
+    </div>
+    <div class="abs h" style="left:60px;top:1190px;font-size:56px">3D-розмальовки <span style="color:var(--violet)">від 89 ₴</span> · набори від 299 ₴</div>`,
+
+  // 3. До Миколая: набір «Миколай і Новий рік»
+  3: () => `<div class="abs" style="inset:0;background:linear-gradient(#24305e,#3b3f8f)"></div>
+    ${[...Array(26)].map((_, i) => `<div class="abs" style="left:${(i * 167) % 1040 + 20}px;top:${(i * 97) % 600 + 20}px;width:${6 + i % 3 * 3}px;height:${6 + i % 3 * 3}px;border-radius:50%;background:#fff;opacity:.55"></div>`).join('')}
+    <div class="abs" style="left:60px;top:56px;width:84px;height:80px;filter:invert(1)">${LOGO}</div><div class="abs h" style="left:156px;top:72px;font-size:44px;color:#fff">PaperMagic</div>
+    <div class="abs h" style="left:60px;right:60px;top:180px;font-size:84px;color:#fff;text-align:center">Подарунок під подушку,<br>який дитина <span style="color:var(--sun)">зробить сама</span></div>
+    <div class="abs card" style="left:60px;right:60px;top:430px;height:560px;background:var(--cream)"></div>
+    <div class="abs fig" style="left:80px;top:440px;width:470px">${FIGS.truck()}</div>
+    <div class="abs fig" style="left:530px;top:440px;width:470px">${FIGS.cupcake()}</div>
+    <div class="abs fig" style="left:80px;top:700px;width:470px">${FIGS.dog()}</div>
+    <div class="abs fig" style="left:530px;top:700px;width:470px">${FIGS.police()}</div>
+    <div class="abs" style="left:60px;right:60px;top:1030px;text-align:center;color:#fff">
+      <div class="h" style="font-size:56px">Набір «Миколай і Новий рік» · 4 фігурки</div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:26px;margin-top:22px">
+        <span class="h" style="font-size:120px;color:var(--sun)">299 ₴</span>
+        <span style="font-size:54px;font-weight:800;opacity:.75"><s>386 ₴</s></span>
+        <span class="pill" style="background:var(--coral);color:#fff;font-size:40px;padding:12px 28px">🎁 до Миколая</span>
+      </div></div>`,
+};
+document.getElementById('stage').innerHTML = VARIANTS[V]();
+</script>
+</body>
+</html>

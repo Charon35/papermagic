@@ -37,10 +37,10 @@ const VARIANTS = {
     <div class="abs" style="left:60px;right:60px;top:400px;height:470px;border-radius:44px;background:var(--violet-l)"></div>
     ${hero(HEROES[0], -10, 400, 470)}${hero(HEROES[1], 290, 360, 470)}${hero(HEROES[4], 600, 400, 470)}
     ${hero(HEROES[2], 120, 560, 440)}${hero(HEROES[3], 460, 560, 440)}
-    <div class="abs card" style="left:60px;right:60px;top:950px;height:330px;padding:36px 50px">
+    <div class="abs card" style="left:60px;right:60px;top:930px;padding:36px 50px 30px">
       <div class="h" style="font-size:52px">Набір «Супергерої»</div>
-      <div style="font-size:38px;font-weight:700;color:var(--muted);margin-top:10px">PDF одразу на e-mail · друкуй скільки завгодно</div>
-      <div style="display:flex;align-items:center;gap:24px;margin-top:26px">
+      <div style="font-size:32px;font-weight:700;color:var(--muted);margin-top:8px;white-space:nowrap">PDF одразу на e-mail · друкуй скільки завгодно</div>
+      <div style="display:flex;align-items:center;gap:24px;margin-top:14px">
         <span class="h" style="font-size:110px;color:var(--violet)">350 ₴</span>
         <span style="font-size:52px;font-weight:800;color:var(--muted)"><s>445 ₴</s></span>
         <span class="pill" style="background:var(--coral);color:#fff;font-size:38px;padding:12px 28px;margin-left:auto">−95 ₴</span>
@@ -50,29 +50,30 @@ const VARIANTS = {
   2: () => `${brand()}
     <div class="abs h" style="left:60px;right:60px;top:170px;font-size:84px">Це був <span class="hl">аркуш паперу</span><br>10 хвилин тому</div>
     <div class="abs card" style="left:60px;top:420px;width:640px;padding:18px;transform:rotate(-3deg)"><img src="${IMG}sheet-hero-kapitan-blyskavka.jpg" style="width:100%;border-radius:16px"></div>
-    <div class="abs" style="left:660px;top:520px;font-size:110px;font-weight:900;color:var(--violet)">→</div>
-    ${hero(HEROES[0], 520, 560, 640)}
-    <div class="abs" style="left:60px;right:60px;top:1060px;display:flex;gap:16px;flex-wrap:wrap">
-      ${['🖨 Роздрукуй', '🖍 Розмалюй', '✂️ Виріж і склей'].map(s => `<span class="pill" style="background:#fff;font-size:40px;padding:18px 30px;box-shadow:0 10px 30px rgba(42,36,64,.12)">${s}</span>`).join('')}
+    <div class="abs" style="left:715px;top:440px;font-size:100px;font-weight:900;color:var(--violet)">→</div>
+    ${hero(HEROES[0], 540, 545, 590)}
+    <div class="abs" style="left:60px;right:60px;top:1050px;display:flex;justify-content:space-between">
+      ${['🖨 Роздрукуй', '🖍 Розмалюй', '✂️ Виріж і склей'].map(s => `<span class="pill" style="background:#fff;font-size:34px;padding:16px 26px;box-shadow:0 10px 30px rgba(42,36,64,.12)">${s}</span>`).join('')}
     </div>
-    <div class="abs h" style="left:60px;top:1190px;font-size:56px">3D-розмальовки <span style="color:var(--violet)">від 89 ₴</span> · набори від 299 ₴</div>`,
+    <div class="abs h" style="left:60px;right:60px;top:1160px;font-size:50px;line-height:1.12">3D-розмальовки <span style="color:var(--violet)">від 89 ₴</span><br>набори від 299 ₴</div>`,
 
   // 3. До Миколая: набір «Миколай і Новий рік»
   3: () => `<div class="abs" style="inset:0;background:linear-gradient(#24305e,#3b3f8f)"></div>
-    ${[...Array(26)].map((_, i) => `<div class="abs" style="left:${(i * 167) % 1040 + 20}px;top:${(i * 97) % 600 + 20}px;width:${6 + i % 3 * 3}px;height:${6 + i % 3 * 3}px;border-radius:50%;background:#fff;opacity:.55"></div>`).join('')}
+    ${[...Array(26)].map((_, i) => [(i * 167) % 1040 + 20, (i * 97) % 600 + 20, i]).filter(([x, y]) => !(y > 40 && y < 150 && x < 420) && !(y > 160 && y < 350)).map(([x, y, i]) => `<div class="abs" style="left:${x}px;top:${y}px;width:${6 + i % 3 * 3}px;height:${6 + i % 3 * 3}px;border-radius:50%;background:#fff;opacity:.55"></div>`).join('')}
     <div class="abs" style="left:60px;top:56px;width:84px;height:80px;filter:invert(1)">${LOGO}</div><div class="abs h" style="left:156px;top:72px;font-size:44px;color:#fff">PaperMagic</div>
-    <div class="abs h" style="left:60px;right:60px;top:180px;font-size:84px;color:#fff;text-align:center">Подарунок під подушку,<br>який дитина <span style="color:var(--sun)">зробить сама</span></div>
-    <div class="abs card" style="left:60px;right:60px;top:430px;height:560px;background:var(--cream)"></div>
-    <div class="abs fig" style="left:80px;top:440px;width:470px">${FIGS.truck()}</div>
-    <div class="abs fig" style="left:530px;top:440px;width:470px">${FIGS.cupcake()}</div>
-    <div class="abs fig" style="left:80px;top:700px;width:470px">${FIGS.dog()}</div>
-    <div class="abs fig" style="left:530px;top:700px;width:470px">${FIGS.police()}</div>
-    <div class="abs" style="left:60px;right:60px;top:1030px;text-align:center;color:#fff">
-      <div class="h" style="font-size:56px">Набір «Миколай і Новий рік» · 4 фігурки</div>
-      <div style="display:flex;justify-content:center;align-items:center;gap:26px;margin-top:22px">
+    <div class="abs h" style="left:60px;right:60px;top:180px;font-size:70px;color:#fff;text-align:center;white-space:nowrap">Подарунок під подушку,<br>який дитина <span style="color:var(--sun)">зробить сама</span></div>
+    <div class="abs card" style="left:60px;right:60px;top:390px;height:600px;background:var(--cream)"></div>
+    <div class="abs fig" style="left:90px;top:395px;width:450px">${FIGS.truck()}</div>
+    <div class="abs fig" style="left:540px;top:395px;width:450px">${FIGS.cupcake()}</div>
+    <div class="abs fig" style="left:90px;top:650px;width:450px">${FIGS.dog()}</div>
+    <div class="abs fig" style="left:540px;top:650px;width:450px">${FIGS.police()}</div>
+    <div class="abs" style="left:60px;right:60px;top:1025px;text-align:center;color:#fff">
+      <div class="h" style="font-size:52px;white-space:nowrap">Набір «Миколай і Новий рік»</div>
+      <div style="font-size:36px;font-weight:700;opacity:.8;margin-top:6px">4 фігурки · PDF одразу на e-mail</div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:26px;margin-top:4px">
         <span class="h" style="font-size:120px;color:var(--sun)">299 ₴</span>
         <span style="font-size:54px;font-weight:800;opacity:.75"><s>386 ₴</s></span>
-        <span class="pill" style="background:var(--coral);color:#fff;font-size:40px;padding:12px 28px">🎁 до Миколая</span>
+        <span class="pill" style="background:var(--coral);color:#fff;font-size:40px;padding:12px 28px">−87 ₴</span>
       </div></div>`,
 };
 document.getElementById('stage').innerHTML = VARIANTS[V]();

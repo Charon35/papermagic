@@ -2,8 +2,8 @@
 // Netlify сам викликає цю функцію після кожної перевіреної заявки Netlify Forms (назва файлу — це подія).
 // У Netlify → Project configuration → Environment variables потрібні:
 //   TELEGRAM_BOT_TOKEN — токен бота від @BotFather
-//   TELEGRAM_CHAT_ID   — id чату, куди слати сповіщення
-// Без них функція нічого не робить, а заявки, як і раніше, зберігаються в Netlify Forms.
+//   TELEGRAM_CHAT_ID   — id чату, куди слати сповіщення (необовʼязково, за замовчуванням — Telegram власника)
+// Без токена функція нічого не робить, а заявки, як і раніше, зберігаються в Netlify Forms.
 
 const TITLES = {
   order: '🛒 Нове замовлення',
@@ -38,7 +38,7 @@ function message(form, d) {
 }
 
 export const handler = async (event) => {
-  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID || '514450638';
   if (!token || !chat) return { statusCode: 200 };
 
   let payload = {};

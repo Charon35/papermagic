@@ -13,3 +13,4 @@ brand/_*
 ads/preview/
 __pycache__/
 instagram/reels-v3/build/
+tiktok/hooks/build/

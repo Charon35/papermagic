@@ -1,5 +1,5 @@
 #!/bin/bash
-# Збирає TikTok-хуки: tiktok/hooks/hook-{1,2,3}.mp4 + ключові кадри hook-N-{start,mid,end}.png
+# Збирає TikTok-хуки: tiktok/hooks/hook-{1,2,3}.mp4 (без звуку), hook-N-sound.mp4 (з музикою) + ключові кадри hook-N-{start,mid,end}.png
 # Потрібно: node + playwright (Chromium), python3 + opencv-python-headless, ffmpeg. Рендер важкий — запускати в хмарі.
 # bash build.sh [1 2 3]
 set -e
@@ -32,4 +32,13 @@ for n in ${@:-1 2 3}; do
   cp $B/frames-$n/f$(printf %04d $((N / 2))).png $OUT/hook-$n-mid.png
   cp $B/frames-$n/f$(printf %04d $((N - 1))).png $OUT/hook-$n-end.png
   ls -la $OUT/hook-$n.mp4
+done
+# 4) власна музика + SFX (src/sound.py) → audio/hook-N.wav і hook-N-sound.mp4 (відео без перекодування)
+mkdir -p $OUT/audio
+for n in ${@:-1 2 3}; do
+  D=$(ffprobe -v error -show_entries format=duration -of csv=p=0 $OUT/hook-$n.mp4)
+  python3 -I sound.py $OUT/audio/hook-$n.wav $n $D
+  ffmpeg -y -loglevel error -i $OUT/hook-$n.mp4 -i $OUT/audio/hook-$n.wav -map 0:v:0 -map 1:a:0 -c:v copy \
+    -c:a aac -b:a 192k -ar 48000 -movflags +faststart -shortest $OUT/hook-$n-sound.mp4
+  ls -la $OUT/hook-$n-sound.mp4
 done

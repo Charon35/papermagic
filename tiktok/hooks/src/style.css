@@ -1,0 +1,8 @@
+:root{--violet:#6a4cf0;--violet-l:#efe9ff;--sun:#ffc93c;--ink:#2a2440;--cream:#fffaf3;--coral:#ff6b5b;--mint:#5fd3b5;--sky:#4aa3ff}
+*{box-sizing:border-box}
+html,body{margin:0;overflow:hidden;background:var(--cream)}
+body{font-family:Nunito,'Noto Color Emoji',sans-serif;color:var(--ink);width:1080px;height:1920px;position:relative}
+#stage{position:absolute;inset:0;overflow:hidden}
+#stage img{display:block}
+/* підпис: центр у безпечній зоні x 60–900 */
+.cap{position:absolute;left:60px;width:840px;text-align:center;font-weight:900;line-height:1.32;letter-spacing:-.01em;transform-origin:50% 50%}

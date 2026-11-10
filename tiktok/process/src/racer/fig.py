@@ -5,7 +5,7 @@ import sys, os, json, subprocess, cv2, numpy as np
 B = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.abspath(os.path.join(HERE, '../../../../instagram/reels-v3/src/fig'))
 CROPS = {'racer-side': (50, 304, 211, 704), 'racer-strip': (218, 254, 382, 794), 'racer-side2': (384, 304, 545, 704)}
-cfg = json.load(open(f'{HERE}/colors.json'))
+cfg = json.load(open(os.environ.get('COLORS', f'{HERE}/colors.json')))   # COLORS — інша розфарбовка (напр. real/colors.json)
 seeds = {}
 for p, c in cfg.items():
     if p == '_': continue

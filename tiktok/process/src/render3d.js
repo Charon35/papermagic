@@ -1,8 +1,9 @@
-// node render3d.js MODEL.json ASSETS.json OUTDIR W H FRAMES.json — кадри складання/обертання (PNG з альфою) через fold3d.html
+// node render3d.js MODEL.json ASSETS.json OUTDIR W H FRAMES.json STRIP_X,STRIP_Y,STRIP_W — кадри складання/обертання (PNG з альфою) через fold3d.html
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs'), http = require('http');
 (async () => {
-  const [modelF, assetsF, out, W, H, framesF] = process.argv.slice(2);
+  const [modelF, assetsF, out, W, H, framesF, stripA] = process.argv.slice(2);
+  const [stx, sty, stw] = stripA.split(',').map(Number);
   fs.mkdirSync(out, { recursive: true });
   const srv = http.createServer((q, r) => {
     const f = decodeURIComponent(q.url.split('?')[0]);
@@ -17,7 +18,7 @@ const path = require('path'), fs = require('fs'), http = require('http');
   const A = JSON.parse(fs.readFileSync(assetsF)), K = 3;
   const parts = A.parts.map(p => ({ box: p.box.map(v => v / K) }));
   const xs = parts.flatMap(p => [p.box[0], p.box[0] + p.box[2]]), ys = parts.flatMap(p => [p.box[1], p.box[1] + p.box[3]]);
-  const sheet = { parts, CX: (Math.min(...xs) + Math.max(...xs)) / 2, CY: (Math.min(...ys) + Math.max(...ys)) / 2, stripTop: [216, 222], stripW: 132 };
+  const sheet = { parts, CX: (Math.min(...xs) + Math.max(...xs)) / 2, CY: (Math.min(...ys) + Math.max(...ys)) / 2, stripTop: [stx, sty], stripW: stw };
   const frames = JSON.parse(fs.readFileSync(framesF));
   const P = Math.min(4, frames.length), pages = [];
   for (let i = 0; i < P; i++) {

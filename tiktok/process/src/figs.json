@@ -1,0 +1,20 @@
+{
+ "police": {
+  "src": "papermagic-site/img/sheet-3.jpg",
+  "clean": [[3, 3, 104, 92], [198, 6, 388, 148], [238, 547, 335, 573]],
+  "figs": "figs.sh", "model": "police",
+  "parts": [{"file": "police-side-color", "undo": "cw", "x": 50, "y": 290, "nb": 9},
+            {"file": "police-strip-color", "x": 216, "y": 222, "nb": 12},
+            {"file": "police-side2-color", "undo": "T", "x": 353, "y": 290, "dx": 61, "nb": 9}],
+  "strip": [216, 222, 132], "pencil": ["#3f6fdc", "#7db5ea", "#3f6fdc"], "out": "police-process"
+ },
+ "racer": {
+  "src": "papermagic-site/free/blyskavka-95.pdf",
+  "clean": [[26, 12, 180, 142], [41, 158, 192, 269], [234, 326, 356, 354]],
+  "figs": "racer/fig.sh", "model": "racer",
+  "parts": [{"file": "racer-side-flat", "x": 50, "y": 304, "nb": 9},
+            {"file": "racer-strip-flat", "x": 218, "y": 254, "nb": 12},
+            {"file": "racer-side2-flat", "x": 384, "y": 304, "nb": 9}],
+  "strip": [218, 254, 164], "pencil": ["#e2262b", "#c81e26", "#e2262b"], "out": "blyskavka-95-process"
+ }
+}

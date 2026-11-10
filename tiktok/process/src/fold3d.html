@@ -64,15 +64,22 @@ window.setup = async (cfg) => {
   const toX = sy => sy - S.CY, toZ = sx => -(sx - S.CX);       // аркуш → площина (поворот на −90°)
 
   // боковини: пласка поза (як на аркуші) → вертикальна
-  [[side, M.sideBox, 1, S.parts[0]], [side2, M.side2Box, -1, S.parts[2]]].forEach(([tex, box, sgn, part]) => {
+  const qX = a => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), a);
+  const qY = a => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), a);
+  [[side, M.sideBox, 1, S.parts[0], (M.flat || {}).side], [side2, M.side2Box, -1, S.parts[2], (M.flat || {}).side2]].forEach(([tex, box, sgn, part, fl]) => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(box.w, box.h), mat(tex));
     m.castShadow = m.receiveShadow = true;
     m.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5 });
-    const lx = (box.x0 + box.x1) / 2 - box.w / 2, ly = box.h / 2 - (box.yTop + box.yBot) / 2;
-    const [bx, by, bw, bh] = part.box, tx = toX(by + bh / 2), tz = toZ(bx + bw / 2);
-    m.userData = { sgn,
-      flat: { p: [tx - lx, 0.6, tz + sgn * ly], r: -sgn * Math.PI / 2 },
-      up: { p: [xoff + box.w / 2 + (M.sideBox.x0 - box.x0), box.yBot - box.h / 2, sgn * W / 2], r: 0 } };
+    let flat;
+    if (fl) {
+      // текстуру вирівняно (повернуто на ang) — у пласкій позі повертаємо назад, центр текстури = центр кропу на аркуші
+      flat = { p: [toX(fl.c[1]), 0.6, toZ(fl.c[0])], q: qY(sgn * -fl.ang).multiply(qX(-sgn * Math.PI / 2)) };
+    } else {
+      const lx = (box.x0 + box.x1) / 2 - box.w / 2, ly = box.h / 2 - (box.yTop + box.yBot) / 2;
+      const [bx, by, bw, bh] = part.box, tx = toX(by + bh / 2), tz = toZ(bx + bw / 2);
+      flat = { p: [tx - lx, 0.6, tz + sgn * ly], q: qX(-sgn * Math.PI / 2) };
+    }
+    m.userData = { sgn, flat, up: { p: [xoff + box.w / 2 + (M.sideBox.x0 - box.x0), box.yBot - box.h / 2, sgn * W / 2], q: new THREE.Quaternion() } };
     car.add(m); sides.push(m);
   });
 
@@ -124,7 +131,7 @@ function setStrip(f){
 window.frame = (o) => {
   for (const m of sides){ const { flat, up } = m.userData, e = easeIO(o.side ?? 1);
     m.position.set(lerp(flat.p[0], up.p[0], e), lerp(flat.p[1], up.p[1], e) + Math.sin(Math.PI * e) * 60, lerp(flat.p[2], up.p[2], e));
-    m.rotation.x = lerp(flat.r, up.r, e); }
+    m.quaternion.slerpQuaternions(flat.q, up.q, e); }
   setStrip(o.strip ?? 1);
   bottom.visible = (o.strip ?? 1) > .97;
   const b = clamp(o.bar ?? 1), be = 1 - Math.pow(1 - b, 3);

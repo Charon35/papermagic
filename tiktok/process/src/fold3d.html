@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PaperMagic fold 3D</title>
+<style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+</head>
+<body>
+<script type="module">
+/* Складання паперової поліцейської машинки (на основі instagram/reels-v3/src/fig/fig3d.html).
+   fold = 0: три деталі лежать пласко, як на аркуші (повернутому на −90°); fold = 1: склеєна машинка.
+   window.setup({model, w, h, base, sheet}) ; window.frame({side, strip, bar, rot, el, dist, fov, lookY, lookX}) */
+import * as THREE from '../../../instagram/reels-v3/src/vendor/three.module.js';
+
+let renderer, scene, camera, car, sides = [], stripMesh, stripPos, bottom, extras = [], cs, M, chain;
+const loader = new THREE.TextureLoader();
+const load = url => new Promise(r => loader.load(url, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; r(t); }));
+const clamp = v => Math.max(0, Math.min(1, v));
+const easeIO = v => { v = clamp(v); return v < .5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2; };
+const lerp = (a, b, k) => a + (b - a) * k;
+
+function paperBump(){
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d'), d = g.createImageData(512, 512);
+  let s = 1; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;   // детермінований шум
+  for (let i = 0; i < d.data.length; i += 4){ const v = 128 + (rnd() - .5) * 60; d.data[i] = d.data[i+1] = d.data[i+2] = v; d.data[i+3] = 255; }
+  g.putImageData(d, 0, 0); g.filter = 'blur(1px)'; g.drawImage(c, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+function radial(){
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.18)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(c);
+}
+
+window.setup = async (cfg) => {
+  M = cfg.model; const base = cfg.base || '', S = cfg.sheet;   // S: {CX, CY, parts:[{box:[x,y,w,h]} у пікселях листа]}
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(cfg.w, cfg.h);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setClearColor(0x000000, 0);
+  document.body.appendChild(renderer.domElement);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(30, cfg.w / cfg.h, 5, 20000);
+  scene.add(new THREE.HemisphereLight(0xfff6ea, 0x8a6a4a, 1.25));
+  const key = new THREE.DirectionalLight(0xfff0dc, 2.6);
+  key.position.set(-420, 700, 380); key.castShadow = true;
+  key.shadow.mapSize.set(4096, 4096); key.shadow.radius = 6; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.6;
+  Object.assign(key.shadow.camera, { left: -500, right: 500, top: 500, bottom: -500, near: 10, far: 3000 });
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xdfe8ff, 0.8); rim.position.set(500, 300, -600); scene.add(rim);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.ShadowMaterial({ opacity: 0.22 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+
+  const [side, side2, strip] = await Promise.all([load(base + M.side), load(base + M.side2), load(base + M.strip)]);
+  const bump = paperBump();
+  const mat = (map, extra = {}) => new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 0.6, roughness: 0.88, metalness: 0,
+    side: THREE.DoubleSide, alphaTest: 0.5, ...extra });
+  car = new THREE.Group(); scene.add(car);
+  const W = M.width, xoff = -M.L / 2, dy = M.H - M.sideBox.yBot;
+  const toX = sy => sy - S.CY, toZ = sx => -(sx - S.CX);       // аркуш → площина (поворот на −90°)
+
+  // боковини: пласка поза (як на аркуші) → вертикальна
+  [[side, M.sideBox, 1, S.parts[0]], [side2, M.side2Box, -1, S.parts[2]]].forEach(([tex, box, sgn, part]) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(box.w, box.h), mat(tex));
+    m.castShadow = m.receiveShadow = true;
+    m.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5 });
+    const lx = (box.x0 + box.x1) / 2 - box.w / 2, ly = box.h / 2 - (box.yTop + box.yBot) / 2;
+    const [bx, by, bw, bh] = part.box, tx = toX(by + bh / 2), tz = toZ(bx + bw / 2);
+    m.userData = { sgn,
+      flat: { p: [tx - lx, 0.6, tz + sgn * ly], r: -sgn * Math.PI / 2 },
+      up: { p: [xoff + box.w / 2 + (M.sideBox.x0 - box.x0), box.yBot - box.h / 2, sgn * W / 2], r: 0 } };
+    car.add(m); sides.push(m);
+  });
+
+  // стрічка: ланцюг граней; кути згинів ростуть від 0 до справжніх
+  const P = M.path.map(([x, y]) => [x + xoff, y - dy]);
+  const segs = []; let tot = 0;
+  for (let i = 0; i < P.length - 1; i++){ const l = Math.hypot(P[i+1][0] - P[i][0], P[i+1][1] - P[i][1]); segs.push({ l, a: Math.atan2(P[i+1][1] - P[i][1], P[i+1][0] - P[i][0]) }); tot += l; }
+  let r = 0; segs.forEach((s, i) => { if (s.l > segs[r].l) r = i; });      // дах — найдовша грань, вона й «якір»
+  const sR = segs.slice(0, r).reduce((a, s) => a + s.l, 0), [sx0, sy0] = S.stripTop;
+  chain = { P, segs, r, tot, k: M.stripLen / tot,
+    flatA: [toX(sy0) + sR * M.stripLen / tot, 0.4, toZ(sx0 + S.stripW / 2)], upA: [P[r][0], P[r][1], 0] };
+  const n = P.length, pos = new Float32Array(n * 2 * 3), uv = [], idx = [];
+  const u0 = (M.stripW - W) / 2 / M.stripW, u1 = 1 - u0; let s = 0;
+  for (let i = 0; i < n; i++){ const v = 1 - s / tot; uv.push(u0, v, u1, v); if (i < n - 1){ s += segs[i].l; idx.push(2*i, 2*i+2, 2*i+1, 2*i+1, 2*i+2, 2*i+3); } }
+  const sg = new THREE.BufferGeometry();
+  stripPos = new THREE.BufferAttribute(pos, 3); sg.setAttribute('position', stripPos);
+  sg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); sg.setIndex(idx);
+  stripMesh = new THREE.Mesh(sg, mat(strip, { alphaTest: 0 })); stripMesh.castShadow = stripMesh.receiveShadow = true; car.add(stripMesh);
+
+  const sill = M.sill - dy, xa = P[0][0], xb = P[n - 1][0];
+  bottom = new THREE.Mesh(new THREE.PlaneGeometry(xb - xa, W), new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.9, side: THREE.DoubleSide }));
+  bottom.rotation.x = Math.PI / 2; bottom.position.set((xa + xb) / 2, sill, 0); car.add(bottom);
+  for (const e of (M.extras || [])){
+    const [x, y, z, w, h, d] = e.box;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: e.color, roughness: 0.8, bumpMap: bump, bumpScale: 0.5,
+      emissive: e.emissive || 0x000000, emissiveIntensity: e.ei || 0 }));
+    m.userData.p = [x + xoff, y - dy + h / 2, z]; m.castShadow = true; car.add(m); extras.push(m);
+  }
+  cs = new THREE.Mesh(new THREE.PlaneGeometry(M.L * 1.15, W * 1.9), new THREE.MeshBasicMaterial({ map: radial(), transparent: true, depthWrite: false }));
+  cs.rotation.x = -Math.PI / 2; cs.position.y = 0.3; car.add(cs);
+  return true;
+};
+
+function setStrip(f){
+  const { P, segs, r, k, flatA, upA } = chain, e = easeIO(f), n = P.length;
+  const ang = i => segs[i].a * e, len = i => segs[i].l * lerp(k, 1, e);
+  const pts = new Array(n); pts[r] = [0, 0];
+  for (let i = r; i < n - 1; i++) pts[i + 1] = [pts[i][0] + len(i) * Math.cos(ang(i)), pts[i][1] + len(i) * Math.sin(ang(i))];
+  for (let i = r - 1; i >= 0; i--) pts[i] = [pts[i + 1][0] - len(i) * Math.cos(ang(i)), pts[i + 1][1] - len(i) * Math.sin(ang(i))];
+  const ax = lerp(flatA[0], upA[0], e), az = lerp(flatA[2], upA[2], e);
+  let ay = lerp(flatA[1], upA[1], e);
+  const low = Math.min(...pts.map(p => p[1])); if (ay + low < 0.4) ay = 0.4 - low;   // не провалюватися під підлогу
+  const W = M.width;
+  for (let i = 0; i < n; i++){ const x = ax + pts[i][0], y = ay + pts[i][1];
+    stripPos.setXYZ(2 * i, x, y, az + W / 2); stripPos.setXYZ(2 * i + 1, x, y, az - W / 2); }
+  stripPos.needsUpdate = true; stripMesh.geometry.computeVertexNormals(); stripMesh.geometry.computeBoundingSphere();
+}
+
+window.frame = (o) => {
+  for (const m of sides){ const { flat, up } = m.userData, e = easeIO(o.side ?? 1);
+    m.position.set(lerp(flat.p[0], up.p[0], e), lerp(flat.p[1], up.p[1], e) + Math.sin(Math.PI * e) * 60, lerp(flat.p[2], up.p[2], e));
+    m.rotation.x = lerp(flat.r, up.r, e); }
+  setStrip(o.strip ?? 1);
+  bottom.visible = (o.strip ?? 1) > .97;
+  const b = clamp(o.bar ?? 1), be = 1 - Math.pow(1 - b, 3);
+  for (const m of extras){ m.visible = b > 0; m.position.set(m.userData.p[0], m.userData.p[1] + (1 - be) * 160, m.userData.p[2]); }
+  cs.material.opacity = clamp(((o.side ?? 1) - .6) / .4);
+  car.rotation.y = o.rot || 0;
+  renderer.toneMappingExposure = o.exposure ?? 1.05;
+  const el = o.el ?? 0.34, dist = o.dist ?? 1600, lookY = o.lookY ?? 70;
+  camera.fov = o.fov || 30; camera.updateProjectionMatrix();
+  camera.position.set(o.lookX || 0, Math.sin(el) * dist + lookY, Math.cos(el) * dist);
+  camera.up.set(0, Math.cos(el), -Math.sin(el));
+  camera.lookAt(o.lookX || 0, lookY, 0);
+  renderer.render(scene, camera);
+};
+window.READY = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic TikTok — процес: поліцейська машинка</title>
+<style>
+html,body{margin:0;overflow:hidden;background:#ece7fb}
+body{width:1080px;height:1920px;position:relative}
+#stage,#bg,#cam,#v3{position:absolute;inset:0}
+#bg{background:radial-gradient(ellipse at 50% 42%,#f5f1ff 0,#ece7fb 58%,#e2dbf6 100%)}
+#bg::after{content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:multiply;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .5 0 0 0 0 .62 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#world img,#world canvas{position:absolute;display:block}
+.abs{position:absolute;left:0;top:0}
+</style>
+</head>
+<body>
+<div id="stage"><div id="bg"></div><div id="cam"><div id="world"></div></div><img id="v3" style="opacity:0"></div>
+<script src="timeline.js"></script>
+<script>
+// Процес без тексту і звуку: аркуш → розфарбовування → вирізання → складання (3D) → готова машинка обертається.
+// Координати #world — пікселі аркуша ×3 (build/a, prep.py). Перевірка в браузері: police-process.html?t=СЕКУНДИ
+const A = '/tiktok/process/build/a/', V3 = '/tiktok/process/build/v3/';
+const { clamp, seg, easeIO, ease, lerp } = TL;
+let J, world, sheetRest, sheetLine, parts = [], patches = [], tools = {};
+const PENCIL = ['#3f6fdc', '#7db5ea', '#3f6fdc'];
+
+const pencilSVG = c => `<svg width="560" height="70" viewBox="0 0 560 70" style="overflow:visible">
+  <g transform="translate(0,35)">
+    <path d="M0 0 L70 -24 L70 24 Z" fill="#f3cf9c"/><path d="M0 0 L26 -9 L26 9 Z" fill="${c}"/>
+    <rect x="70" y="-24" width="390" height="48" fill="${c}"/>
+    <rect x="70" y="-24" width="390" height="14" fill="#fff" opacity=".22"/><rect x="70" y="10" width="390" height="14" fill="#000" opacity=".12"/>
+    <rect x="460" y="-26" width="44" height="52" rx="4" fill="#cfd1da"/><rect x="470" y="-26" width="6" height="52" fill="#a9acb8"/><rect x="486" y="-26" width="6" height="52" fill="#a9acb8"/>
+    <rect x="504" y="-25" width="52" height="50" rx="16" fill="#ff9db5"/>
+  </g></svg>`;
+const blade = s => `<path d="M-20 ${-12 * s} L330 ${-3 * s} Q346 0 330 ${4 * s} L-20 ${14 * s} Z" fill="#c3c7d4" stroke="#555a6e" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M-10 ${-6 * s} L325 ${-1 * s}" stroke="#fff" stroke-width="5" opacity=".75"/>`;
+const handle = (s, c) => `<path d="M-16 ${6 * s} C-60 ${14 * s} -90 ${26 * s} -112 ${46 * s}" stroke="${c}" stroke-width="30" fill="none" stroke-linecap="round"/>
+  <ellipse cx="-158" cy="${64 * s}" rx="58" ry="40" fill="none" stroke="${c}" stroke-width="26"/>`;
+const scissorsSVG = () => `<svg width="10" height="10" style="overflow:visible"><g transform="scale(1.45)">
+  <g id="bA">${blade(1)}${handle(1, '#ff6b5b')}</g>
+  <g id="bB">${blade(-1)}${handle(-1, '#6a4cf0')}</g>
+  <circle r="13" fill="#555a6e"/><circle r="6" fill="#f4f4f8"/></g></svg>`;
+
+function el(tag, css, html = '') { const e = document.createElement(tag); e.style.cssText = css; e.innerHTML = html; world.appendChild(e); return e; }
+const imgData = src => new Promise(r => { const i = new Image(); i.onload = () => { const c = document.createElement('canvas'); c.width = i.width; c.height = i.height;
+  const g = c.getContext('2d'); g.drawImage(i, 0, 0); r(g.getImageData(0, 0, i.width, i.height)); }; i.src = src; });
+
+async function setup() {
+  J = await (await fetch(A + 'assets.json')).json();
+  world = document.getElementById('world');
+  world.style.width = J.W + 'px'; world.style.height = J.H + 'px';
+  el('div', `left:0;top:0;width:${J.W}px;height:${J.H}px;position:absolute;background:#fff;box-shadow:0 40px 90px rgba(60,40,120,.22),0 6px 16px rgba(60,40,120,.12);border-radius:8px`).id = 'paper';
+  sheetLine = el('img', `left:0;top:0;width:${J.W}px;height:${J.H}px`); sheetLine.src = A + 'line.png';
+  sheetRest = el('img', `left:0;top:0;width:${J.W}px;height:${J.H}px;opacity:0`); sheetRest.src = A + 'rest.png';
+  for (let i = 0; i < 3; i++) {
+    const [x, y, w, h] = J.parts[i].box;
+    const patch = el('div', `left:${x}px;top:${y}px;width:${w}px;height:${h}px;position:absolute;background:url(${A}color.png) ${-x}px ${-y}px/${J.W}px ${J.H}px;opacity:0`);
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px`; world.appendChild(cv);
+    const cut = el('div', `left:0;top:0;width:${J.W}px;height:${J.H}px;position:absolute;pointer-events:none`);
+    const pi = el('img', `left:${x}px;top:${y}px;width:${w}px;height:${h}px;opacity:0;transform-origin:50% 50%`); pi.src = A + `part-${i}.png`;
+    const [col, rv] = await Promise.all([imgData(A + `part-${i}.png`), imgData(A + `reveal-${i}.png`)]);
+    parts.push({ i, x, y, w, h, cv, g: cv.getContext('2d'), out: new ImageData(w, h), col, rv, pi, patch, cut, nb: J.parts[i].nb, pts: J.parts[i].cut, last: -1 });
+  }
+  tools.pencil = el('div', 'position:absolute;left:0;top:0;opacity:0;transform-origin:0 0;filter:drop-shadow(18px 26px 14px rgba(40,30,90,.28))', pencilSVG(PENCIL[0]));
+  tools.scis = el('div', 'position:absolute;left:0;top:0;opacity:0;filter:drop-shadow(14px 22px 12px rgba(40,30,90,.3))', scissorsSVG());
+  // кути дотичної до контуру (згладжені), щоб ножиці плавно поверталися на кутах
+  for (const p of parts) { const n = p.pts.length, a = [];
+    for (let k = 0; k < n; k++) { let sx = 0, sy = 0; for (let d = -10; d <= 10; d++) { const q = p.pts[(k + d + 1 + n) % n], o = p.pts[(k + d + n) % n]; sx += q[0] - o[0]; sy += q[1] - o[1]; } a.push(Math.atan2(sy, sx)); }
+    for (let k = 1; k < n; k++) { while (a[k] - a[k - 1] > Math.PI) a[k] -= 2 * Math.PI; while (a[k] - a[k - 1] < -Math.PI) a[k] += 2 * Math.PI; }
+    p.ang = a; }
+  await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
+}
+
+// розфарбування деталі до частки k (0…1): піксель з'являється, коли k «доходить» до його часу в reveal-N.png
+function paint(p, k) {
+  const kk = Math.round(k * 400) / 400; if (kk === p.last) return; p.last = kk;
+  const c = p.col.data, r = p.rv.data, o = p.out.data, thr = kk * 262 - 6;
+  for (let j = 0; j < c.length; j += 4) {
+    const a = clamp((thr - r[j]) / 6) * r[j + 3];
+    o[j] = c[j]; o[j + 1] = c[j + 1]; o[j + 2] = c[j + 2]; o[j + 3] = a;
+  }
+  p.g.putImageData(p.out, 0, 0);
+}
+// де олівець при частці k: «змійка» по смугах деталі
+function pencilAt(p, k) {
+  const b = Math.min(p.nb - 1, Math.floor(k * p.nb)), f = k * p.nb - b, u = b % 2 ? 1 - f : f;
+  return [p.x + p.w * (.04 + .92 * u), p.y + p.h * (b + .5) / p.nb];
+}
+const partC = i => [parts[i].x + parts[i].w / 2, parts[i].y + parts[i].h / 2];
+
+// камера над аркушем: центр (cx, cy) у пікселях ×3, масштаб z, поворот r (°)
+function camera(t) {
+  world.style.filter = "";
+  const full = [J.W / 2, J.H / 2], C = [J.W / 2, 1513];
+  let cx, cy, z, r;
+  if (t < TL.COLOR[0]) { const k = easeIO(t / TL.COLOR[0]); [cx, cy] = full; z = lerp(.5, .53, k); r = lerp(-2.5, 0, k); }
+  else if (t < TL.CUT[0] - .1) {
+    // за олівцем: від однієї деталі до іншої
+    const f = i => partC(i)[0];
+    const k0 = easeIO(seg(t, TL.COLOR[0] - .2, TL.COLOR[0] + .5)), k1 = easeIO(seg(t, TL.COLOR[1] - .4, TL.COLOR[1] + .2)), k2 = easeIO(seg(t, TL.COLOR[2] - .4, TL.COLOR[2] + .2));
+    const kb = easeIO(seg(t, TL.COLOR[2] + TL.COLOR_D, TL.CUT[0] - .1));
+    cx = lerp(lerp(lerp(lerp(full[0], f(0), k0), f(1), k1), f(2), k2), C[0], kb);
+    cy = lerp(lerp(full[1], C[1], k0), C[1], kb); z = lerp(lerp(.53, .62, k0), .6, kb); r = 0;
+  } else if (t < TL.AWAY[0]) {
+    const f = i => partC(i)[0];
+    const k0 = easeIO(seg(t, TL.CUT[0] - .1, TL.CUT[0] + .4)), k1 = easeIO(seg(t, TL.CUT[1] - .35, TL.CUT[1] + .15)), k2 = easeIO(seg(t, TL.CUT[2] - .35, TL.CUT[2] + .15));
+    cx = lerp(lerp(lerp(C[0], f(0), k0), f(1), k1), f(2), k2); cy = C[1]; z = lerp(.6, .64, k0); r = 0;
+    const kb = easeIO(seg(t, TL.CUT[2] + TL.CUT_D + .1, TL.AWAY[0])); cx = lerp(cx, C[0], kb); z = lerp(z, .6, kb);
+  } else {
+    // к 3D-виду зверху: поворот на −90°, масштаб як у 3D-кадрі
+    const k = easeIO(seg(t, TL.AWAY[0], TL.AWAY[1]));
+    const xs = parts.flatMap(p => [p.x, p.x + p.w]), ys = parts.flatMap(p => [p.y, p.y + p.h]);
+    const P = [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
+    cx = lerp(C[0], P[0], k); cy = lerp(C[1], P[1], k); z = lerp(.6, TL.PX / 3, k); r = lerp(0, -90, k);
+    world.style.filter = `saturate(${1 - .32 * k}) brightness(${1 - .01 * k})`;
+  }
+  world.style.transform = `translate(540px,960px) rotate(${r}deg) scale(${z}) translate(${-cx}px,${-cy}px)`;
+}
+
+window.draw = t => {
+  camera(t);
+  const pen = tools.pencil, sc = tools.scis;
+  // 2) розфарбовування
+  pen.style.opacity = 0;
+  for (const p of parts) {
+    const a = TL.COLOR[p.i], k = seg(t, a, a + TL.COLOR_D);
+    paint(p, easeIO(k) * .15 + k * .85);
+    p.cv.style.display = t < TL.CUT[0] ? 'block' : 'none';
+  }
+  if (t >= TL.COLOR[0] - .5 && t < TL.CUT[0]) {
+    // олівець: заходить знизу, малює деталь за деталлю, переїжджає між ними, виходить
+    let i = 0; for (let j = 0; j < 3; j++) if (t >= TL.COLOR[j] - .3) i = j;
+    const a = TL.COLOR[i], p = parts[i], k = seg(t, a, a + TL.COLOR_D), kk = easeIO(k) * .15 + k * .85;
+    let [x, y] = pencilAt(p, kk);
+    y += Math.sin(t * 47) * 10; x += Math.sin(t * 31) * 6;
+    let lift = 0;
+    if (t < a) {                                           // переїзд до наступної деталі
+      const from = i === 0 ? [J.W * .8, J.H * 1.05] : pencilAt(parts[i - 1], 1), m = easeIO(seg(t, a - .3, a));
+      x = lerp(from[0], x, m); y = lerp(from[1], y, m); lift = Math.sin(Math.PI * m) * (i === 0 ? 0 : 1);
+    }
+    const out = ease(seg(t, TL.COLOR[2] + TL.COLOR_D, TL.COLOR[2] + TL.COLOR_D + .5));
+    x = lerp(x, J.W * .95, out); y = lerp(y, J.H * 1.1, out);
+    pen.style.opacity = i === 0 ? ease(seg(t, a - .5, a - .2)) : 1;
+    if (out >= 1) pen.style.opacity = 0;
+    if (pen.dataset.c !== String(i)) { pen.innerHTML = pencilSVG(PENCIL[i]); pen.dataset.c = i; }
+    pen.style.transform = `translate(${x}px,${y - lift * 50}px) rotate(${52 + Math.sin(t * 9) * 2}deg) scale(${1 + lift * .05}) translate(0,-35px)`;
+  }
+  // 3) вирізання: аркуш з дірками + «латки» над ще не вирізаними деталями
+  const cutting = t >= TL.CUT[0] - .3;
+  sheetRest.style.opacity = cutting ? 1 : 0; sheetLine.style.opacity = cutting ? 0 : 1;
+  sc.style.opacity = 0;
+  const away = ease(seg(t, TL.AWAY[0], TL.AWAY[1] - .2));
+  sheetRest.style.transform = `translate(0,${away * 1200}px)`; sheetRest.style.opacity = cutting ? 1 - away : 0;
+  document.getElementById('paper').style.transform = sheetRest.style.transform;
+  document.getElementById('paper').style.opacity = 1 - away;
+  for (const p of parts) {
+    const a = TL.CUT[p.i], e = a + TL.CUT_D, done = t >= e;
+    p.patch.style.opacity = cutting && !done ? 1 : 0;
+    p.pi.style.opacity = cutting && t >= a ? 1 : 0;
+    p.pi.style.display = t >= TL.CUT[0] - .3 ? 'block' : 'none';
+    const lift = easeIO(seg(t, e, e + .55)) * (1 - easeIO(seg(t, TL.AWAY[0] + .2, TL.AWAY[1] - .1)));
+    p.pi.style.transform = `translate(0,${-lift * 40}px) rotate(${lift * (p.i - 1 || .6) * 2}deg) scale(${1 + lift * .05})`;
+    p.pi.style.filter = `drop-shadow(0 ${4 + lift * 40}px ${4 + lift * 30}px rgba(40,30,90,${.18 + lift * .14}))`;
+    // слід розрізу
+    const k = seg(t, a, e);
+    if (inside(t, a, e + .05) && cutting) {
+      const n = p.pts.length, m = Math.floor(k * (n - 1));
+      p.cut.innerHTML = `<svg width="${J.W}" height="${J.H}" style="position:absolute;left:0;top:0;overflow:visible"><polyline points="${p.pts.slice(0, m + 1).map(q => q.join(',')).join(' ')}" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round" opacity=".95"/></svg>`;
+      const f = k * (n - 1) - m, q0 = p.pts[m], q1 = p.pts[(m + 1) % n];
+      const x = lerp(q0[0], q1[0], f), y = lerp(q0[1], q1[1], f), ang = lerp(p.ang[m], p.ang[Math.min(m + 1, n - 1)], f) * 180 / Math.PI;
+      const open = 10 + 9 * Math.sin(t * 34);
+      sc.querySelector('#bA').setAttribute('transform', `rotate(${open})`); sc.querySelector('#bB').setAttribute('transform', `rotate(${-open})`);
+      const ent = ease(seg(t, a - .25, a));  // заїзд ножиць до старту
+      sc.style.opacity = 1;
+      sc.style.transform = `translate(${x}px,${y}px) rotate(${ang}deg) translate(-110px,0) scale(${.9 + .1 * ent})`;
+      if (t < a) sc.style.opacity = ent;
+    } else p.cut.innerHTML = '';
+  }
+  // переходи ножиць між деталями
+  for (let i = 0; i < 3; i++) { const a = TL.CUT[i];
+    if (inside(t, a - .3, a)) { const p = parts[i], q = p.pts[0], prev = i ? parts[i - 1].pts[0] : [q[0] - 400, q[1] + 500], m = easeIO(seg(t, a - .3, a));
+      sc.style.opacity = 1; const x = lerp(prev[0], q[0], m), y = lerp(prev[1], q[1], m);
+      sc.style.transform = `translate(${x}px,${y - Math.sin(Math.PI * m) * 60}px) rotate(${p.ang[0] * 180 / Math.PI}deg) translate(-110px,0)`;
+      if (i === 0) sc.style.opacity = m; } }
+  if (inside(t, TL.CUT[2] + TL.CUT_D, TL.CUT[2] + TL.CUT_D + .4)) {
+    const p = parts[2], q = p.pts[0], m = ease(seg(t, TL.CUT[2] + TL.CUT_D, TL.CUT[2] + TL.CUT_D + .4));
+    sc.style.opacity = 1 - m; sc.style.transform = `translate(${q[0] + 500 * m}px,${q[1] + 600 * m}px) rotate(${p.ang[0] * 180 / Math.PI}deg) translate(-110px,0)`;
+  }
+  // 4–5) 3D: деталі складаються, потім готова машинка обертається
+  const v3 = document.getElementById('v3'), cam = document.getElementById('cam');
+  if (t >= TL.T3) {
+    const n = Math.min(Math.round((t - TL.T3) * TL.FPS), Math.round((TL.DUR - TL.T3) * TL.FPS) - 1);
+    const src = V3 + 'f' + String(n).padStart(4, '0') + '.png';
+    if (v3.getAttribute('src') !== src) v3.src = src;
+    const x = easeIO(seg(t, TL.T3, TL.T3 + .4)); v3.style.opacity = x; cam.style.opacity = 1 - x;
+  } else { v3.style.opacity = 0; cam.style.opacity = 1; }
+};
+const inside = (t, a, b) => t >= a && t < b;
+window.SCENE = { dur: TL.DUR };
+window.addEventListener('load', async () => { await setup(); window.draw(+(new URLSearchParams(location.search).get('t') || 0)); window.READY = true; });
+</script>
+</body>
+</html>

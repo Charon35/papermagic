@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic TikTok — «Це був аркуш паперу»</title>
+<link rel="stylesheet" href="/instagram/src/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage"></div>
+<script src="common.js"></script>
+<script>
+// Хук 1, 10.4 с: готова 3D-машинка → «перемотка» до чорно-білого аркуша → розмальовка → знову машинка → логотип
+const P = BUILD + 'parts/';
+window.SCENE = {
+  dur: 10.4,
+  preload: [IMG + 'sheet-3.jpg', P + 'police-side-line.png', P + 'police-side-color.png'],
+  draw(t) {
+    let h = '';
+    const bg = c => `<div style="position:absolute;inset:0;background:${c}"></div>`;
+    // промені, що повільно крутяться: фон завжди в русі
+    const rays = (c1, c2, cy = 960) => `<div style="position:absolute;left:-460px;top:${cy - 1000}px;width:2000px;height:2000px;border-radius:50%;background:repeating-conic-gradient(from ${t * 25}deg,${c1} 0 10deg,${c2} 10deg 20deg)"></div>`;
+
+    // 1) 0–2.1 с: машинка вже крутиться, наїзд камери
+    if (t < 2.1) {
+      h += bg('#ffd75e') + rays('#ffd75e', '#ffcd3c');
+      const z = 1 + .12 * easeIO(t / 2.1);
+      h += spin('police', .02 + t / 3.2, 540, 1000, 1300, z);
+      h += cap(['Це був аркуш', 'паперу 👀'], 250, 108, { rot: -2, scale: 1 + .04 * Math.sin(t * 6) * (1 - seg(t, 0, 1)) });
+      if (t > 1.15) h += chip('серйозно 👇', CX, 1330, 62, { center: true, rot: 3, scale: pop((t - 1.15) / .35), bg: 'var(--ink)' });
+    }
+    // 2) 2.1–2.9 с: перемотка назад — машинка швидко крутиться у зворотний бік і зменшується
+    else if (t < 2.9) {
+      const k = seg(t, 2.1, 2.9);
+      h += bg('#d9d4ea') + rays('#d9d4ea', '#cfc9e3');
+      h += `<div style="position:absolute;inset:0;filter:saturate(${1 - .8 * k}) contrast(1.1)">${spin('police', .02 + 2.1 / 3.2 - k * 2.2, 540 + Math.sin(t * 90) * 8, 1000, 1300, 1.12 - .55 * ease(k))}</div>`;
+      h += `<div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0 3px,transparent 3px 9px)"></div>`;
+      h += cap(['⏪ перемотуємо…'], 260, 96, { bg: 'var(--ink)', fg: '#fff', rot: -2 });
+      if (k > .8) h += `<div style="position:absolute;inset:0;background:#fff;opacity:${(k - .8) / .2}"></div>`;
+    }
+    // 3) 2.9–4.6 с: чорно-білий аркуш, наїзд на деталь машинки
+    else if (t < 4.6) {
+      const k = seg(t, 2.9, 4.6), z = 1 + .9 * easeIO(seg(t, 3.7, 4.5));
+      h += bg('#f1eee8');
+      const W = 780, H = W * 842 / 595;
+      // фокус на боковині машинки (лист 595×842: x 50–212, y 290–700)
+      const fx = 131 / 595 * W, fy = 495 / 842 * H;
+      const zk = easeIO(seg(t, 3.7, 4.5)), px = W / 2 + (fx - W / 2) * zk, py = H / 2 + (fy - H / 2) * zk;   // від центру аркуша до деталі
+      h += `<div style="position:absolute;left:${540 - px}px;top:${960 - py}px;width:${W}px;height:${H}px;transform-origin:${px}px ${py}px;transform:scale(${z * (.94 + .06 * ease(k / .25))}) rotate(${-3 + 3 * zk}deg)">
+        <img src="${IMG}sheet-3.jpg" style="width:100%;height:100%;box-shadow:0 30px 70px rgba(42,36,64,.25);border-radius:6px"></div>`;
+      if (t < 2.98) h += `<div style="position:absolute;inset:0;background:#fff;opacity:${1 - seg(t, 2.9, 2.98)}"></div>`;
+      h += cap(['Ось він 📄', 'просто PDF'], 250, 100, { scale: pop(seg(t, 2.9, 3.25)), rot: 2 });
+    }
+    // 4) 4.6–6.4 с: деталь розмальовується (контур → колір), олівець їде по межі
+    else if (t < 6.4) {
+      const k = easeIO(seg(t, 4.75, 5.9)), W = 1000, Hh = W * 486 / 1230;
+      h += bg('#fff6e3') + rays('#fff6e3', '#ffefcf');
+      const x0 = 40, y0 = 760 - Hh / 2, lift = seg(t, 5.9, 6.4);
+      const wob = Math.sin(t * 9) * 1.5;
+      h += `<div style="position:absolute;left:${x0}px;top:${y0 - lift * 40}px;width:${W}px;height:${Hh}px;transform:rotate(${-4 + wob + lift * 6}deg) scale(${1 + .08 * lift});filter:drop-shadow(0 ${14 + 30 * lift}px ${20 + 20 * lift}px rgba(42,36,64,.28))">
+        <img src="${P}police-side-line.png" style="position:absolute;inset:0;width:100%;height:100%">
+        <img src="${P}police-side-color.png" style="position:absolute;inset:0;width:100%;height:100%;clip-path:inset(0 ${100 - k * 100}% 0 0)">
+        ${k > 0 && k < 1 ? `<div style="position:absolute;left:${k * W - 30}px;top:${Hh * (.25 + .5 * Math.abs(Math.sin(t * 7)))}px;font-size:150px;transform:translate(-20%,-80%) rotate(-10deg)">✏️</div>` : ''}
+      </div>`;
+      h += cap(t < 5.9 ? ['Розфарбуй ✏️'] : ['Виріж ✂️', 'і склей 🧴'], 300, 94, { scale: t < 5.9 ? pop(seg(t, 4.6, 4.95)) : pop(seg(t, 5.9, 6.2)), rot: -2 });
+      h += chip(`${Math.round(5 + 25 * seg(t, 4.6, 6.4))} хв творчості ⏱`, CX, 1180, 58, { center: true, bg: 'var(--coral)' });
+    }
+    // 5) 6.4–8.4 с: знову 3D-машинка, сплеск конфеті
+    else if (t < 8.4) {
+      const k = seg(t, 6.4, 8.4);
+      h += bg('#9fe3cf') + rays('#9fe3cf', '#8bdac3');
+      const s = pop(seg(t, 6.4, 6.85));
+      // спочатку «перемотка вперед» (швидко), потім спокійне обертання
+      const turn = .1 + 1.2 * ease(seg(t, 6.4, 7.2)) + (t - 6.4) / 4;
+      h += spin('police', turn, 540, 1000, 1300, s * (1.1 + .06 * k));
+      h += confetti(t, 6.45, 540, 950);
+      h += cap(['А тепер —', 'іграшка 🚓'], 250, 108, { scale: pop(seg(t, 6.5, 6.85)), rot: 2 });
+      if (t > 7.4) h += chip('з одного аркуша ✨', CX, 1330, 56, { center: true, scale: pop((t - 7.4) / .35), bg: 'var(--violet)' });
+    }
+    // 6) 8.4–10.4 с: логотип
+    else h += endCard(t, 8.4, spin('police', .1 + t / 4, 540, 1390, 1000, pop(seg(t, 8.5, 8.9))));
+    return h;
+  },
+};
+</script>
+</body>
+</html>

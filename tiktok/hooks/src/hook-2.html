@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>PaperMagic TikTok — «Вгадай, хто з них був папером?»</title>
+<link rel="stylesheet" href="/instagram/src/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage"></div>
+<script src="common.js"></script>
+<script>
+// Хук 2, 10.4 с: 5 кубо-героїв вискакують → «хто з них папір?» підсвічування по черзі → «Усі!» герої перевертаються на аркуші → логотип
+const HEROES = ['kapitan-blyskavka', 'divchynka-zirka', 'super-sonyashnyk', 'kapitan-khvylia', 'misiachna-tin'];
+// центри фігурок (x, y) і ширина; підписи займають y 240–600, фігурки — нижче
+const POS = [[275, 880, 560], [790, 860, 560], [535, 1150, 600], [275, 1430, 560], [790, 1420, 560]];
+const TILT = [-6, 5, -2, 4, -5];
+window.SCENE = {
+  dur: 10.4,
+  preload: HEROES.flatMap(s => [IMG + `hero-${s}.svg`, IMG + `sheet-hero-${s}.jpg`]),
+  draw(t) {
+    let h = `<div style="position:absolute;inset:0;background:#e9e2ff"></div>
+      <div style="position:absolute;left:-460px;top:0;width:2000px;height:2000px;border-radius:50%;background:repeating-conic-gradient(from ${t * 20}deg,#e9e2ff 0 9deg,#ddd3ff 9deg 18deg)"></div>`;
+    if (t >= 8.4) return h + endCard(t, 8.4, HEROES.map((s, i) => hero(s, 130 + i * 205, 1330, 360, pop(seg(t, 8.5 + i * .07, 8.9 + i * .07)), 1, TILT[i])).join(''));
+
+    // хто зараз «під прожектором» (2.1–5.6 с, по 0.7 с кожен)
+    const spot = inside(t, 2.1, 5.6) ? Math.floor((t - 2.1) / .7) : -1;
+    HEROES.forEach((s, i) => {
+      const [x, y, w] = POS[i];
+      // поява: троє вже на місці в кадрі 0.0, решта вискакує на 0.3 і 0.6 с
+      let sc = i < 3 ? 1 + .06 * Math.sin(t * 8 + i * 2) * (1 - seg(t, 0, .6)) : pop(seg(t, (i - 2) * .3, (i - 2) * .3 + .4));
+      let op = 1, rot = TILT[i] + Math.sin(t * 3 + i) * 3, flip = 0;
+      if (spot >= 0) { const on = spot === i; sc *= on ? 1.18 : .9; op = on ? 1 : .45; if (on) rot += Math.sin((t - 2.1) * 30) * 4 * (1 - seg((t - 2.1) % .7, 0, .4)); }
+      if (inside(t, 5.6, 6.3)) rot += Math.sin(t * 50 + i) * 5;               // «барабанний дріб»
+      // відповідь: кожен перевертається на свій аркуш і назад
+      const f0 = 6.55 + i * .12;
+      flip = seg(t, f0, f0 + .35) - seg(t, 7.75 + i * .06, 8.1 + i * .06);
+      h += hero(s, x, y, w, sc, op, rot, flip);
+      if (spot === i) h += chip('№' + (i + 1) + ' ?', Math.min(x, 740), Math.min(y + w * .3, 1360), 64, { center: true, bg: 'var(--coral)', scale: pop(((t - 2.1) % .7) / .3) });
+    });
+
+    if (t < 2.1) h += cap(['Вгадай, хто', 'з них був', 'папером? 🤔'], 240, 96, { rot: -2, scale: 1 + .05 * Math.sin(t * 7) * (1 - seg(t, 0, 1)) });
+    else if (t < 5.6) h += cap(['Пиши номер', 'у коментарях 👇'], 260, 86, { rot: 2, scale: pop(seg(t, 2.1, 2.45)) });
+    else if (t < 6.3) h += cap(['Відповідь… 🥁'], 260, 94, { scale: 1 + .05 * Math.sin(t * 40) });
+    else h += cap(['УСІ 😄'], 270, 180, { scale: pop(seg(t, 6.3, 6.7)), rot: -3, bg: 'var(--sun)' });
+    if (t > 6.9 && t < 8.4) h += chip('усі 5 — з паперу ✂️', CX, 1380, 60, { center: true, bg: 'var(--violet)', scale: pop(seg(t, 6.9, 7.25)) });
+    h += confetti(t, 6.35, 540, 900, 44);
+    return h;
+  },
+};
+// герой: SVG-фігурка; flip 0→1 — поворот «картки» навколо вертикалі, з другого боку аркуш
+function hero(slug, x, y, w, s, o = 1, rot = 0, flip = 0) {
+  if (s <= 0) return '';
+  const back = flip > .5, sx = Math.abs(Math.cos(flip * Math.PI));
+  const img = back
+    ? `<img src="${IMG}sheet-hero-${slug}.jpg" style="width:${w * .85}px;height:${w * .85 * 595 / 842}px;margin:${w * .2}px 0 0 ${w * .075}px;border-radius:12px;box-shadow:0 18px 40px rgba(42,36,64,.3)">`
+    : `<img src="${IMG}hero-${slug}.svg" style="width:${w}px;filter:drop-shadow(0 22px 22px rgba(42,36,64,.25))">`;
+  return `<div style="position:absolute;left:${x - w / 2}px;top:${y - w / 2}px;width:${w}px;height:${w}px;opacity:${o};transform:rotate(${rot}deg) scale(${s * sx},${s});transform-origin:50% 60%">${img}</div>`;
+}
+</script>
+</body>
+</html>
